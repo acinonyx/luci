@@ -1,0 +1,51 @@
+config core main
+	option lang en
+	option mediaurlbase /luci-static/openwrt.org
+	option resourcebase /luci-static/resources
+	
+config core brand
+	option title	"OpenWRT Kamikaze"
+	option subtitle	"Lua Configuration Interface"
+	option firmware	"OpenWRT Kamikaze"
+	option distro	"Development Snapshot"
+		
+config extern flash_keep
+	option uci 	"/etc/config"
+	option dropbear "/etc/dropbear"
+	option openvpn	"/etc/openvpn"
+	option passwd	"/etc/passwd"
+	option ipkg	"/etc/ipkg.conf"
+	option httpd	"/etc/httpd.conf"
+	option firewall	"/etc/firewall.user"
+
+config event uci_oncommit
+	option network		"/sbin/luci-reload network firewall dnsmasq luci_splash"
+	option wireless		"/sbin/luci-reload network firewall dnsmasq luci_splash"
+	option olsr			"/sbin/luci-reload olsrd"
+	option dhcp			"/sbin/luci-reload dnsmasq"
+	option dropbear		"/sbin/luci-reload dropbear"
+	option httpd		"/sbin/luci-reload httpd"
+	option fstab		"/sbin/luci-reload fstab"
+	option qos			"/sbin/luci-reload qos"
+	option system		"/sbin/luci-reload led"
+	option firewall		"/sbin/luci-reload firewall luci_splash"
+	option luci_ethers	"/sbin/luci-reload luci_ethers dnsmasq"
+	option luci_splash	"/sbin/luci-reload firewall luci_splash"
+	option upnpd		"/etc/init.d/miniupnpd enabled && /sbin/luci-reload miniupnpd || /etc/init.d/miniupnpd stop"
+	option ntpclient	"/sbin/luci-reload ntpclient"
+	option samba		"/sbin/luci-reload samba"
+
+config internal languages
+	
+config internal sauth
+	option sessionpath "/tmp/.lucisessions"
+	option sessiontime 3600
+	
+config internal ccache
+	option enable 1
+
+config internal template
+	option compiler_mode file
+	option compiledir "/tmp/.lucitplcache"
+		
+config internal themes
