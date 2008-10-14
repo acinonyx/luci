@@ -1,0 +1,8 @@
+ushare = 'uShare'
+ushare_desc = 'uShare'
+settings = 'Settings'
+disable_webif = 'Disable webinterface'
+disable_telnet = 'Disable telnet console'
+servername = 'Servername'
+content_directories = 'Content directories'
+options = 'Options'
