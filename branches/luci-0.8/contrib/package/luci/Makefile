@@ -14,8 +14,8 @@ ifeq ($(USELOCAL),1)
 else
   PKG_SOURCE_URL:=http://svn.luci.subsignal.org/luci/$(PKG_BRANCH)
   ifeq ($(DUMP),)
-    PKG_REV:=HEAD
-    PKG_VERSION:=0.8.6
+    PKG_REV:=$(shell LC_ALL=C svn info $(CURDIR) | sed -ne 's/^Revision: //p')
+    PKG_VERSION:=0.8+svn$(PKG_REV)
   endif
   PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
   PKG_SOURCE:=$(PKG_SOURCE_SUBDIR).tar.gz
@@ -713,6 +713,26 @@ define Package/luci-i18n-portuguese_brazilian/install
 endef
 
 
+define Package/luci-i18n-japanese
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Japanese (by Tsukasa Hamano)
+endef
+
+define Package/luci-i18n-japanese/install
+	$(call Package/luci/install/template,$(1),i18n/japanese)
+endef
+
+
+define Package/luci-i18n-greek
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Greek (by Vasilis Tsiligiannis)
+endef
+
+define Package/luci-i18n-greek/install
+	$(call Package/luci/install/template,$(1),i18n/greek)
+endef
+
+
 ### Compile ###
 ifneq ($(CONFIG_PACKAGE_luci-core),)
 	PKG_SELECTED_MODULES+=libs/core
@@ -875,6 +895,12 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-i18n-portuguese_brazilian),)
 	PKG_SELECTED_MODULES+=i18n/portuguese_brazilian
 endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-japanese),)
+	PKG_SELECTED_MODULES+=i18n/japanese
+endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-greek),)
+	PKG_SELECTED_MODULES+=i18n/greek
+endif
 
 
 MAKE_FLAGS += \
@@ -944,3 +970,5 @@ $(eval $(call BuildPackage,luci-i18n-french))
 $(eval $(call BuildPackage,luci-i18n-italian))
 $(eval $(call BuildPackage,luci-i18n-russian))
 $(eval $(call BuildPackage,luci-i18n-portuguese_brazilian))
+$(eval $(call BuildPackage,luci-i18n-japanese))
+$(eval $(call BuildPackage,luci-i18n-greek))
