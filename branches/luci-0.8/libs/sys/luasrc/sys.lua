@@ -35,7 +35,8 @@ luci.util   = require "luci.util"
 luci.fs     = require "luci.fs"
 luci.ip     = require "luci.ip"
 
-local tonumber, ipairs, pairs, pcall = tonumber, ipairs, pairs, pcall
+local tonumber, ipairs, pairs, pcall, type =
+	tonumber, ipairs, pairs, pcall, type
 
 
 --- LuCI Linux and POSIX system utilities.
@@ -129,10 +130,16 @@ end
 -- @return		Table containing all variables if no variable name is given
 getenv = posix.getenv
 
---- Determine the current hostname.
+--- Get or set the current hostname.
+-- @param		String containing a new hostname to set (optional)
 -- @return		String containing the system hostname
-function hostname()
-	return posix.uname("%n")
+function hostname(newname)
+	if type(newname) == "string" and #newname > 0 then
+		luci.fs.writefile( "/proc/sys/kernel/hostname", newname .. "\n" )
+		return newname
+	else
+		return posix.uname("%n")
+	end
 end
 
 --- Returns the contents of a documented referred by an URL.
@@ -672,6 +679,36 @@ function wifi.iwscan(iface)
 	end
 
 	return iface and (iws[iface] or {}) or iws
+end
+
+--- Get available channels from given wireless iface.
+-- @param iface	Wireless interface (optional)
+-- @return		Table of available channels
+function wifi.channels(iface)
+	local cmd = "iwlist " .. ( iface or "" ) .. " freq 2>/dev/null"
+	local cns = { }
+
+	local fd = io.popen(cmd)
+	if fd then
+		local ln, c, f
+		repeat
+			ln = fd:read("*l") or ""
+			c, f = ln:match("Channel (%d+) : (%d+%.%d+) GHz")
+			if c and f then
+				cns[tonumber(c)] = tonumber(f)
+			end
+		until not ( #ln > 0 )
+		fd:close()
+	end
+
+	if not ((pairs(cns))(cns)) then
+		cns = {
+			2.412, 2.417, 2.422, 2.427, 2.432, 2.437,
+			2.442, 2.447, 2.452, 2.457, 2.462
+		}
+	end
+
+	return cns
 end
 
 

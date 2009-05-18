@@ -328,7 +328,7 @@ define Package/luci-freifunk-community
    +PACKAGE_luci-freifunk-community:olsrd-luci +PACKAGE_luci-freifunk-community:olsrd-luci-mod-dyn-gw-plain \
    +PACKAGE_luci-freifunk-community:olsrd-luci-mod-txtinfo +PACKAGE_luci-freifunk-community:olsrd-luci-mod-nameservice \
    +PACKAGE_luci-freifunk-community:olsrd-luci-mod-watchdog +PACKAGE_luci-freifunk-community:kmod-tun \
-   +PACKAGE_luci-freifunk-community:ip +luci-app-olsr
+   +PACKAGE_luci-freifunk-community:ip +PACKAGE_luci-freifunk-community:freifunk-watchdog +luci-app-olsr
   TITLE:=Freifunk Community Meta-Package
 endef
 
@@ -462,7 +462,7 @@ endef
 
 define Package/luci-app-splash
   $(call Package/luci/fftemplate)
-  DEPENDS+=+PACKAGE_luci-app-splash:luci-nixio
+  DEPENDS+=+PACKAGE_luci-app-splash:luci-nixio +PACKAGE_luci-app-splash:iptables-mod-nat-extra
   TITLE:=Freifunk DHCP-Splash application
 endef
 
@@ -645,7 +645,7 @@ endef
 define Package/luci-app-openvpn
   $(call Package/luci/webtemplate)
   TITLE:=LuCI Support for OpenVPN
-  DEPENDS+=@BROKEN +luci-admin-core +PACKAGE_luci-app-openvpn:openvpn
+  DEPENDS+=+luci-admin-core +PACKAGE_luci-app-openvpn:openvpn
 endef
 
 define Package/luci-app-openvpn/install

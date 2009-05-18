@@ -28,9 +28,12 @@
 #include <fcntl.h>
 #include <math.h>
 #include <time.h>
+#include <signal.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <linux/types.h>
+#include <linux/watchdog.h>
 
 #include "ucix.h"
 #include "wireless.22.h"
@@ -50,6 +53,18 @@
 
 /* Crond error action */
 #define CRON_ACTION		"/etc/init.d/cron", "/etc/init.d/cron", "restart"
+
+/* SSHd error action */
+#define SSHD_ACTION		"/etc/init.d/dropbear", "/etc/init.d/dropbear", "restart"
+
+/* Watchdog device */
+#define WATCH_DEVICE	"/dev/watchdog"
+#define WATCH_SHUTDOWN	'V'
+#define WATCH_KEEPALIVE	'\0'
+
+/* System load error action and treshold */
+#define LOAD_TRESHOLD	5.00
+#define LOAD_ACTION		"/sbin/reboot"
 
 /* Fallback binary name (passed by makefile) */
 #ifndef BINARY
