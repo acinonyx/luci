@@ -57,14 +57,14 @@ end
 if hwtype == "atheros" then
 	s:option(Value, "txpower", translate("a_w_txpwr"), "dBm").rmempty = true
 
-	mode = s:option(ListValue, "mode", translate("mode"))
+	mode = s:option(ListValue, "hwmode", translate("mode"))
 	mode:value("", translate("wifi_auto"))
 	mode:value("11b", "802.11b")
 	mode:value("11g", "802.11g")
 	mode:value("11a", "802.11a")
 	mode:value("11bg", "802.11b+g")
-	mode:value("11gdt", "802.11adt")
-	mode:value("11adt", "802.11adt")
+	mode:value("11gst", "802.11g + Turbo")
+	mode:value("11ast", "802.11a + Turbo")
 	mode:value("fh", translate("wifi_fh"))
 
 	s:option(Flag, "diversity", translate("wifi_diversity")).rmempty = false
@@ -289,7 +289,7 @@ if hwtype == "prism2" then
 	hidden.optional = true
 
 	bssid:depends({mode="sta"})
-	
+
 	mp = s:option(ListValue, "macpolicy", translate("wifi_macpolicy"))
 	mp.optional = true
 	mp:value("")
@@ -369,10 +369,13 @@ port.rmempty = true
 key = s:option(Value, "key", translate("key"))
 key:depends("encryption", "wep")
 key:depends("encryption", "psk")
-key:depends({mode="ap", encryption="wpa"})
 key:depends("encryption", "psk2")
+key:depends("encryption", "psk+psk2")
+key:depends("encryption", "mixed")
+key:depends({mode="ap", encryption="wpa"})
 key:depends({mode="ap", encryption="wpa2"})
 key.rmempty = true
+key.password = true
 
 if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
 	nasid = s:option(Value, "nasid", translate("a_w_nasid"))

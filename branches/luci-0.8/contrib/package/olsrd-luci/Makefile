@@ -12,21 +12,22 @@ include $(TOPDIR)/rules.mk
 PKG_BASENAME:=olsrd
 PKG_NAME:=$(PKG_BASENAME)-luci
 PKG_BASEVER:=0.5.6-r4
-PKG_VERSION:=$(PKG_BASEVER)+luci1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
-#PKG_HGREV:=54e88033741d
-#PKG_SOURCE:=$(PKG_HGREV).tar.gz
-#PKG_SOURCE_URL:=http://gredler.at/hg/olsrd-0.5.6/archive
-#PKG_MD5SUM:=e195860d25f152245d6d92257c31304d
-#PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_HGREV)
-#PKG_UNPACK=$(HOST_TAR) -C $(PKG_BUILD_DIR) --strip-components=1 -xzf $(DL_DIR)/$(PKG_SOURCE)
+PKG_HGREV:=edc947c1a5bc
+PKG_SOURCE:=$(PKG_HGREV).tar.gz
+PKG_SOURCE_URL:=http://gredler.at/hg/olsrd-0.5.6/archive
+PKG_MD5SUM:=9b0ee1ef2581386f745f5e12b08e6daa
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_HGREV)
+PKG_UNPACK=$(HOST_TAR) -C $(PKG_BUILD_DIR) --strip-components=1 -xzf $(DL_DIR)/$(PKG_SOURCE)
+PKG_VERSION:=$(PKG_BASEVER)+$(PKG_HGREV)+luci1
 
-PKG_SOURCE:=$(PKG_BASENAME)-$(PKG_BASEVER).tar.bz2
-PKG_SOURCE_URL:=http://www.olsr.org/releases/0.5
-PKG_MD5SUM:=16076660413bcf625ba8772fdb3d607f
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_BASEVER)
-PKG_UNPACK=$(HOST_TAR) -C $(PKG_BUILD_DIR) --strip-components=1 -xjf $(DL_DIR)/$(PKG_SOURCE)
+#PKG_SOURCE:=$(PKG_BASENAME)-$(PKG_BASEVER).tar.bz2
+#PKG_SOURCE_URL:=http://www.olsr.org/releases/0.5
+#PKG_MD5SUM:=16076660413bcf625ba8772fdb3d607f
+#PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_BASEVER)
+#PKG_UNPACK=$(HOST_TAR) -C $(PKG_BUILD_DIR) --strip-components=1 -xjf $(DL_DIR)/$(PKG_SOURCE)
+#PKG_VERSION:=$(PKG_BASEVER)+luci1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -51,84 +52,72 @@ endef
 
 define Package/olsrd-luci-mod-arprefresh
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - ARP Refresh Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-dot-draw
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Dot Draw Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-bmf
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Basic Multicast Forwarding Plugin
 	DEPENDS:=olsrd-luci +kmod-tun
 endef
 
 define Package/olsrd-luci-mod-dyn-gw
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Dynamic Gateway Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-dyn-gw-plain
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Dynamic Gateway Plugin (Plain Version)
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-httpinfo
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - HTTP/HTML Info Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-nameservice
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Hostname Propagation Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-secure
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Security Extensions Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-txtinfo
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - HTTP/Plaintext Info Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-quagga
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Quagga Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-watchdog
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - Watchdog Plugin
 	DEPENDS:=olsrd-luci
 endef
 
 define Package/olsrd-luci-mod-mdns
 	$(call Package/olsrd-luci/common_info)
-	MENU:=1
 	TITLE:=OLSR - mDNS Plugin
 	DEPENDS:=olsrd-luci
 endef

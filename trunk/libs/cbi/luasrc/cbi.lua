@@ -40,6 +40,7 @@ local instanceof = util.instanceof
 FORM_NODATA  =  0
 FORM_PROCEED =  0
 FORM_VALID   =  1
+FORM_DONE	 =  1
 FORM_INVALID = -1
 FORM_CHANGED =  2
 FORM_SKIP    =  4
@@ -300,6 +301,7 @@ function Map.__init__(self, config, ...)
 	self.apply_on_parse = nil
 	self.readinput = true
 	self.proceed = false
+	self.flow = {}
 
 	self.uci = uci.cursor()
 	self.save = true
@@ -320,7 +322,7 @@ function Map.formvalue(self, key)
 end
 
 function Map.formvaluetable(self, key)
-	return self.readinput and luci.http.formvaluetable(key)
+	return self.readinput and luci.http.formvaluetable(key) or {}
 end
 
 function Map.get_scheme(self, sectiontype, option)
@@ -464,11 +466,18 @@ Compound = class(Node)
 
 function Compound.__init__(self, ...)
 	Node.__init__(self)
+	self.template = "cbi/compound"
 	self.children = {...}
 end
 
+function Compound.populate_delegator(self, delegator)
+	for _, v in ipairs(self.children) do
+		v.delegator = delegator
+	end
+end
+
 function Compound.parse(self, ...)
-	local cstate, state = 0, 0
+	local cstate, state = 0
 
 	for k, child in ipairs(self.children) do
 		cstate = child:parse(...)
@@ -486,60 +495,121 @@ Delegator = class(Node)
 function Delegator.__init__(self, ...)
 	Node.__init__(self, ...)
 	self.nodes = {}
+	self.defaultpath = {}
+	self.pageaction = false
+	self.readinput = true
+	self.allow_back = false
+	self.allow_finish = false
 	self.template = "cbi/delegator"
 end
 
-function Delegator.state(self, name, node, transitor)
-	transitor = transitor or self.transistor_linear
-	local state = {node=node, name=name, transitor=transitor}
-
-	assert(instanceof(node, Node), "Invalid node")
+function Delegator.set(self, name, node)
+	if type(node) == "table" and getmetatable(node) == nil then
+		node = Compound(unpack(node))
+	end
+	assert(type(node) == "function" or instanceof(node, Compound), "Invalid")
 	assert(not self.nodes[name], "Duplicate entry")
 
-	self.nodes[name] = state
-	self:append(state)
+	self.nodes[name] = node
+end
 
-	return state
+function Delegator.add(self, name, node)
+	node = self:set(name, node)
+	self.defaultpath[#self.defaultpath+1] = name
+end
+
+function Delegator.insert_after(self, name, after)
+	local n = #self.chain
+	for k, v in ipairs(self.chain) do
+		if v == state then
+			n = k + 1
+			break
+		end
+	end
+	table.insert(self.chain, n, name)
+end
+
+function Delegator.set_route(self, ...)
+	local n, chain, route = 0, self.chain, {...}
+	for i = 1, #chain do
+		if chain[i] == self.current then
+			n = i
+			break
+		end
+	end
+	for i = 1, #route do
+		n = n + 1
+		chain[n] = route[i]
+	end
+	for i = n + 1, #chain do
+		chain[i] = nil
+	end
 end
 
 function Delegator.get(self, name)
 	return self.nodes[name]
 end
 
-function Delegator.transistor_linear(self, state, cstate)
-	if cstate > 0 then
-		for i, child in ipairs(self.children) do
-			if state == child then
-				return self.children[i+1]
-			end
-		end
-	else
-		return state
-	end
-end
-
 function Delegator.parse(self, ...)
-	local active = self:getactive()
-	assert(active, "Invalid state")
+	local newcurrent
+	self.chain = self.chain or self:get_chain()
+	self.current = self.current or self:get_active()
+	self.active = self.active or self:get(self.current)
+	assert(self.active, "Invalid state")
+	
+	local stat = FORM_DONE
+	if type(self.active) ~= "function" then
+		self.active:populate_delegator(self)
+		stat = self.active:parse() 
+	else
+		self:active()
+	end
 
-	local cstate = active.node:parse()
-	self.active = active.transistor(self, active.node, cstate)
+	if stat > FORM_PROCEED then
+		if Map.formvalue(self, "cbi.delg.back") then
+			newcurrent = self:get_prev(self.current)
+		else
+			newcurrent = self:get_next(self.current)
+		end
+	end
 
-	if not self.active then
+	if not newcurrent or not self:get(newcurrent) then
 		return FORM_DONE
 	else
-		self.active:parse(false)
-		return FROM_PROCEED
+		self.current = newcurrent
+		self.active = self:get(self.current)
+		if type(self.active) ~= "function" then
+			self.active:parse(false)
+			return FROM_PROCEED
+		else
+			return self:parse(...)
+		end
 	end
 end
 
-function Delegator.render(self, ...)
-	self.active.node:render(...)
+function Delegator.get_next(self, state)
+	for k, v in ipairs(self.chain) do
+		if v == state then
+			return self.chain[k+1]
+		end
+	end
 end
 
-function Delegator.getactive(self)
-	return self:get(Map.formvalue(self, "cbi.delegated")
-		or (self.children[1] and self.children[1].name))
+function Delegator.get_prev(self, state)
+	for k, v in ipairs(self.chain) do
+		if v == state then
+			return self.chain[k-1]
+		end
+	end
+end
+
+function Delegator.get_chain(self)
+	local x = Map.formvalue(self, "cbi.delg.path") or self.defaultpath
+	return type(x) == "table" and x or {x}
+end
+
+function Delegator.get_active(self)
+	return Map.formvalue(self, "cbi.delg.current") or self.chain[1]
 end
 
 --[[
@@ -742,8 +812,8 @@ function AbstractSection.parse_optionals(self, section)
 		if v.optional and not v:cfgvalue(section) then
 			if field == v.option then
 				field = nil
-			else
 				self.map.proceed = true
+			else
 				table.insert(self.optionals[section], v)
 			end
 		end

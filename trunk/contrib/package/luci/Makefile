@@ -227,7 +227,19 @@ define Package/luci-luanet
 endef
 
 define Package/luci-luanet/install
-        $(call Package/luci/install/template,$(1),libs/luanet)
+	$(call Package/luci/install/template,$(1),libs/luanet)
+endef
+
+
+define Package/luci-lucid
+  $(call Package/luci/libtemplate)
+  TITLE:=LuCId Superserver
+  DEPENDS+=+luci-nixio +luci-http
+endef
+
+define Package/luci-lucid/install
+	$(call Package/luci/install/template,$(1),libs/lucid)
+	$(call Package/luci/install/template,$(1),libs/lucid-http)
 endef
 
 
@@ -254,6 +266,10 @@ define Package/luci-nixio/config
 			select PACKAGE_dropbear
 			select PACKAGE_dropbearconvert
 
+		config PACKAGE_luci-nixio_cyassl
+			bool "CyaSSL"
+			select PACKAGE_libcyassl-luci
+
 		config PACKAGE_luci-nixio_openssl
 			bool "OpenSSL"
 			select PACKAGE_libopenssl
@@ -264,6 +280,9 @@ ifneq ($(CONFIG_PACKAGE_luci-nixio_openssl),)
   NIXIO_TLS:=openssl
 endif
 
+ifneq ($(CONFIG_PACKAGE_luci-nixio_cyassl),)
+  NIXIO_TLS:=cyassl
+endif
 
 define Package/luci-sys
   $(call Package/luci/libtemplate)
@@ -277,7 +296,7 @@ endef
 
 define Package/luci-web
   $(call Package/luci/libtemplate)
-  DEPENDS+=+luci-http +luci-sys +luci-uci +luci-sgi-cgi
+  DEPENDS+=+luci-http +luci-sys +luci-uci +luci-lucid +luci-sgi-cgi
   TITLE:=MVC Webframework
   $(call Config,luci.main.lang,string,en,Default Language)
 endef
@@ -322,7 +341,7 @@ endef
 define Package/luci-freifunk-community
   $(call Package/luci/fftemplate)
   DEPENDS+= \
-   +luci-sgi-cgi +luci-app-splash \
+   +luci-lucid +luci-sgi-cgi +luci-app-splash \
    +luci-app-ffwizard-leipzig \
    +luci-i18n-german \
    +PACKAGE_luci-freifunk-community:olsrd-luci +PACKAGE_luci-freifunk-community:olsrd-luci-mod-dyn-gw-plain \
@@ -664,25 +683,6 @@ define Package/luci-sgi-cgi/install
 	$(call Package/luci/install/template,$(1),libs/sgi-cgi)
 endef
 
-define Package/luci-sgi-luci
-  $(call Package/luci/libtemplate)
-  DEPENDS+=+luci-httpd
-  TITLE:=SGI for LuCIttpd
-endef
-
-define Package/luci-sgi-luci/install
-	$(call Package/luci/install/template,$(1),libs/sgi-luci)
-endef
-
-define Package/luci-sgi-webuci
-  $(call Package/luci/libtemplate)
-  TITLE:=SGI for Webuci
-endef
-
-define Package/luci-sgi-webuci/install
-	$(call Package/luci/install/template,$(1),libs/sgi-webuci)
-endef
-
 ### Themes ###
 define Package/luci-theme-base
   $(call Package/luci/thtemplate)
@@ -724,6 +724,17 @@ endef
 
 define Package/luci-theme-freifunk-bno/install
 	$(call Package/luci/install/template,$(1),themes/freifunk-bno)
+endef
+
+define Package/luci-theme-freifunk-hannover
+  $(call Package/luci/fftemplate)
+  DEPENDS:=+luci-web
+  MAINTAINER:=Mikolas Bingemer <mickey-at-freifunk-hannover-dot-de>
+  TITLE:=Freifunk Hannover Theme
+endef
+
+define Package/luci-theme-freifunk-hannover/install
+	$(call Package/luci/install/template,$(1),themes/freifunk-hannover)
 endef
 
 define Package/luci-theme-openwrt
@@ -827,6 +838,27 @@ define Package/luci-i18n-greek/install
 	$(call Package/luci/install/template,$(1),i18n/greek)
 endef
 
+
+define Package/luci-i18n-catalan
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Catalan (by Eduard Duran)
+endef
+
+define Package/luci-i18n-catalan/install
+	$(call Package/luci/install/template,$(1),i18n/catalan)
+endef
+
+
+define Package/luci-i18n-portuguese
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Portuguese (by Jose Monteiro)
+endef
+
+define Package/luci-i18n-portuguese/install
+	$(call Package/luci/install/template,$(1),i18n/portuguese)
+endef
+
+
 ### Compile ###
 ifneq ($(CONFIG_PACKAGE_luci-core),)
 	PKG_SELECTED_MODULES+=libs/core
@@ -851,6 +883,9 @@ ifneq ($(CONFIG_PACKAGE_luci-json),)
 endif
 ifneq ($(CONFIG_PACKAGE_luci-luanet),)
 	PKG_SELECTED_MODULES+=libs/luanet
+endif
+ifneq ($(CONFIG_PACKAGE_luci-lucid),)
+	PKG_SELECTED_MODULES+=libs/lucid libs/lucid-http
 endif
 ifneq ($(CONFIG_PACKAGE_luci-nixio),)
 	PKG_SELECTED_MODULES+=libs/nixio
@@ -979,6 +1014,9 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-theme-freifunk-bno),)
 	PKG_SELECTED_MODULES+=themes/freifunk-bno
 endif
+ifneq ($(CONFIG_PACKAGE_luci-theme-freifunk-hannover),)
+	PKG_SELECTED_MODULES+=themes/freifunk-hannover
+endif
 ifneq ($(CONFIG_PACKAGE_luci-theme-freifunk),)
 	PKG_SELECTED_MODULES+=themes/freifunk
 endif
@@ -1013,6 +1051,12 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-i18n-greek),)
 	PKG_SELECTED_MODULES+=i18n/greek
 endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-catalan),)
+	PKG_SELECTED_MODULES+=i18n/catalan
+endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-portuguese),)
+	PKG_SELECTED_MODULES+=i18n/portuguese
+endif
 
 
 MAKE_FLAGS += \
@@ -1032,6 +1076,7 @@ $(eval $(call BuildPackage,luci-httpclient))
 $(eval $(call BuildPackage,luci-ipkg))
 $(eval $(call BuildPackage,luci-json))
 $(eval $(call BuildPackage,luci-luanet))
+$(eval $(call BuildPackage,luci-lucid))
 $(eval $(call BuildPackage,luci-nixio))
 $(eval $(call BuildPackage,luci-uci))
 $(eval $(call BuildPackage,luci-sys))
@@ -1072,13 +1117,12 @@ $(eval $(call BuildPackage,luci-app-polipo))
 $(eval $(call BuildPackage,luci-app-openvpn))
 
 $(eval $(call BuildPackage,luci-sgi-cgi))
-$(eval $(call BuildPackage,luci-sgi-luci))
-$(eval $(call BuildPackage,luci-sgi-webuci))
 
 $(eval $(call BuildPackage,luci-theme-base))
 $(eval $(call BuildPackage,luci-theme-fledermaus))
 $(eval $(call BuildPackage,luci-theme-freifunk))
 $(eval $(call BuildPackage,luci-theme-freifunk-bno))
+$(eval $(call BuildPackage,luci-theme-freifunk-hannover))
 $(eval $(call BuildPackage,luci-theme-openwrt))
 $(eval $(call BuildPackage,luci-theme-openwrtlight))
 
@@ -1090,3 +1134,5 @@ $(eval $(call BuildPackage,luci-i18n-russian))
 $(eval $(call BuildPackage,luci-i18n-portuguese_brazilian))
 $(eval $(call BuildPackage,luci-i18n-japanese))
 $(eval $(call BuildPackage,luci-i18n-greek))
+$(eval $(call BuildPackage,luci-i18n-catalan))
+$(eval $(call BuildPackage,luci-i18n-portuguese))
