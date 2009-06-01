@@ -344,7 +344,7 @@ function Server.parse_headers(self, source)
 		end
 	until false
 	
-	env.SCRIPT_NAME, env.QUERY_STRING = env.REQUEST_URI:match("(.*)%??(.*)")
+	env.SCRIPT_NAME, env.QUERY_STRING = env.REQUEST_URI:match("([^?]*)%??(.*)")
 	return req
 end
 
