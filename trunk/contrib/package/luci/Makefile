@@ -459,7 +459,7 @@ endef
 
 define Package/luci-app-olsr
   $(call Package/luci/webtemplate)
-  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-olsr:olsrd-luci +PACKAGE_luci-app-olsr:olsrd-luci-mod-txtinfo
+  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-olsr:olsrd
   TITLE:=OLSR configuration and status module
 endef
 
