@@ -26,9 +26,13 @@ endif
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_INSTALL_DIR:=$(PKG_BUILD_DIR)/ipkg-install
 
-PKG_BUILD_DEPENDS:=libnotimpl
 LUA_TARGET:=source
+LUCI_CFLAGS:=
 PKG_SELECTED_MODULES:=
+
+ifeq ($(BOARD),brcm-2.4)
+  MAKE_FLAGS += CRAP="1"
+endif
 
 
 include $(INCLUDE_DIR)/package.mk
@@ -50,42 +54,36 @@ endef
 ### Templates ###
 
 define Package/luci/libtemplate
-  SECTION:=admin
-  CATEGORY:=Administration
+  SECTION:=luci
+  CATEGORY:=LuCI
   TITLE:=LuCI - Lua Configuration Interface
   URL:=http://luci.freifunk-halle.net/
   MAINTAINER:=Steven Barth <steven-at-midlink-dot-org>
-  SUBMENU:=LuCI Libraries
+  SUBMENU:=Libraries
   DEPENDS:=+luci-core
 endef
 
 define Package/luci/fftemplate
   $(call Package/luci/libtemplate)
-  SUBMENU:=LuCI Freifunk Support
+  SUBMENU:=Freifunk
   DEPENDS:=+luci-mod-freifunk
-endef
-
-define Package/luci/httpdtemplate
-  $(call Package/luci/libtemplate)
-  SUBMENU:=LuCIttpd
-  DEPENDS:=+luci-httpd
 endef
 
 define Package/luci/i18ntemplate
   $(call Package/luci/libtemplate)
-  SUBMENU:=LuCI Translations
+  SUBMENU:=Translations
   DEPENDS:=+luci-web
 endef
 
 define Package/luci/thtemplate
   $(call Package/luci/libtemplate)
-  SUBMENU:=LuCI Themes
+  SUBMENU:=Themes
   DEPENDS:=+luci-web
 endef
 
 define Package/luci/webtemplate
   $(call Package/luci/libtemplate)
-  SUBMENU:=LuCI Components
+  SUBMENU:=Components
 endef
 
 
@@ -100,7 +98,7 @@ endef
 
 define Package/luci-core
   $(call Package/luci/libtemplate)
-  DEPENDS:=+lua
+  DEPENDS:=+lua +luci-nixio
   TITLE:=LuCI core libraries
 endef
 
@@ -234,7 +232,7 @@ endef
 define Package/luci-lucid
   $(call Package/luci/libtemplate)
   TITLE:=LuCId Superserver
-  DEPENDS+=+luci-nixio +luci-http
+  DEPENDS+=+luci-nixio +luci-http +luci-px5g
 endef
 
 define Package/luci-lucid/install
@@ -248,7 +246,7 @@ NIXIO_TLS:=axtls
 
 define Package/luci-nixio
   $(call Package/luci/libtemplate)
-  TITLE:=NIXIO Socket Library
+  TITLE:=NIXIO POSIX Library
   DEPENDS:=
 endef
 
@@ -263,8 +261,6 @@ define Package/luci-nixio/config
 
 		config PACKAGE_luci-nixio_axtls
 			bool "Builtin (axTLS)"
-			select PACKAGE_dropbear
-			select PACKAGE_dropbearconvert
 
 		config PACKAGE_luci-nixio_cyassl
 			bool "CyaSSL"
@@ -282,7 +278,20 @@ endif
 
 ifneq ($(CONFIG_PACKAGE_luci-nixio_cyassl),)
   NIXIO_TLS:=cyassl
+  LUCI_CFLAGS+=-I$(STAGING_DIR)/usr/include/cyassl
 endif
+
+
+define Package/luci-px5g
+  $(call Package/luci/libtemplate)
+  TITLE:=PX5G RSA Keymaster
+  DEPENDS:=+luci-nixio
+endef
+
+define Package/luci-px5g/install
+	$(call Package/luci/install/template,$(1),libs/px5g)
+endef
+
 
 define Package/luci-sys
   $(call Package/luci/libtemplate)
@@ -318,20 +327,6 @@ endef
 
 define Package/luci-uvl/install
 	$(call Package/luci/install/template,$(1),libs/uvl)
-endef
-
-
-
-### HTTPD ###
-
-define Package/luci-httpd
-  $(call Package/luci/httpdtemplate)
-  DEPENDS:=+luci-http +libuci
-  TITLE:=Server Core
-endef
-
-define Package/luci-httpd/install
-	$(call Package/luci/install/template,$(1),libs/lucittpd)
 endef
 
 
@@ -409,7 +404,7 @@ endef
 
 define Package/luci-mod-freifunk
   $(call Package/luci/fftemplate)
-  DEPENDS:=+luci-admin-full +luci-json
+  DEPENDS:=+luci-admin-full +luci-json +PACKAGE_luci-mod-freifunk:freifunk-firewall
   TITLE:=LuCI Freifunk module
 endef
 
@@ -459,7 +454,8 @@ endef
 
 define Package/luci-app-olsr
   $(call Package/luci/webtemplate)
-  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-olsr:olsrd-luci +PACKAGE_luci-app-olsr:olsrd-luci-mod-txtinfo
+  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-olsr:olsrd-luci \
+   +PACKAGE_luci-app-olsr:olsrd-luci-mod-txtinfo
   TITLE:=OLSR configuration and status module
 endef
 
@@ -481,7 +477,10 @@ endef
 
 define Package/luci-app-splash
   $(call Package/luci/fftemplate)
-  DEPENDS+=+PACKAGE_luci-app-splash:luci-nixio +PACKAGE_luci-app-splash:iptables-mod-nat-extra
+  DEPENDS+=+PACKAGE_luci-app-splash:luci-nixio \
+   +PACKAGE_luci-app-splash:tc +PACKAGE_luci-app-splash:kmod-sched \
+   +PACKAGE_luci-app-splash:iptables-mod-nat-extra \
+   +PACKAGE_luci-app-splash:iptables-mod-ipopt
   TITLE:=Freifunk DHCP-Splash application
 endef
 
@@ -669,6 +668,17 @@ endef
 
 define Package/luci-app-openvpn/install
         $(call Package/luci/install/template,$(1),applications/luci-openvpn)
+endef
+
+define Package/luci-app-p2pblock
+  $(call Package/luci/webtemplate)
+  TITLE:=LuCI Support for the Freifunk P2P-Block addon
+  DEPENDS+=+luci-admin-core +luci-app-firewall \
+    +PACKAGE_luci-app-p2pblock:freifunk-p2pblock
+endef
+
+define Package/luci-app-p2pblock/install
+        $(call Package/luci/install/template,$(1),applications/luci-p2pblock)
 endef
 
 
@@ -890,6 +900,9 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-nixio),)
 	PKG_SELECTED_MODULES+=libs/nixio
 endif
+ifneq ($(CONFIG_PACKAGE_luci-px5g),)
+	PKG_SELECTED_MODULES+=libs/px5g
+endif
 ifneq ($(CONFIG_PACKAGE_luci-uci),)
 	PKG_SELECTED_MODULES+=libs/uci
 endif
@@ -901,10 +914,6 @@ ifneq ($(CONFIG_PACKAGE_luci-web),)
 endif
 ifneq ($(CONFIG_PACKAGE_luci-uvl),)
 	PKG_SELECTED_MODULES+=libs/uvl
-endif
-
-ifneq ($(CONFIG_PACKAGE_luci-httpd),)
-	PKG_SELECTED_MODULES+=libs/lucittpd
 endif
 
 ifneq ($(CONFIG_PACKAGE_luci-admin-core),)
@@ -993,6 +1002,9 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-app-openvpn),)
        PKG_SELECTED_MODULES+=applications/luci-openvpn
 endif
+ifneq ($(CONFIG_PACKAGE_luci-app-p2pblock),)
+       PKG_SELECTED_MODULES+=applications/luci-p2pblock
+endif
 
 
 ifneq ($(CONFIG_PACKAGE_luci-sgi-cgi),)
@@ -1000,9 +1012,6 @@ ifneq ($(CONFIG_PACKAGE_luci-sgi-cgi),)
 endif
 ifneq ($(CONFIG_PACKAGE_luci-sgi-luci),)
 	PKG_SELECTED_MODULES+=libs/sgi-luci
-endif
-ifneq ($(CONFIG_PACKAGE_luci-sgi-webuci),)
-	PKG_SELECTED_MODULES+=libs/sgi-webuci
 endif
 
 ifneq ($(CONFIG_PACKAGE_luci-theme-base),)
@@ -1063,7 +1072,7 @@ MAKE_FLAGS += \
 	MODULES="$(PKG_SELECTED_MODULES)" \
 	LUA_TARGET="$(LUA_TARGET)" \
 	LUA_SHLIBS="-llua -lm -ldl -lcrypt" \
-	CFLAGS="$(TARGET_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+	CFLAGS="$(TARGET_CFLAGS) $(LUCI_CFLAGS) -I$(STAGING_DIR)/usr/include" \
 	LDFLAGS="$(TARGET_LDFLAGS) -L$(STAGING_DIR)/usr/lib" \
 	NIXIO_TLS="$(NIXIO_TLS)" OS="Linux"
 
@@ -1078,12 +1087,11 @@ $(eval $(call BuildPackage,luci-json))
 $(eval $(call BuildPackage,luci-luanet))
 $(eval $(call BuildPackage,luci-lucid))
 $(eval $(call BuildPackage,luci-nixio))
+$(eval $(call BuildPackage,luci-px5g))
 $(eval $(call BuildPackage,luci-uci))
 $(eval $(call BuildPackage,luci-sys))
 $(eval $(call BuildPackage,luci-web))
 $(eval $(call BuildPackage,luci-uvl))
-
-$(eval $(call BuildPackage,luci-httpd))
 
 $(eval $(call BuildPackage,luci-admin-core))
 $(eval $(call BuildPackage,luci-admin-mini))
@@ -1115,6 +1123,7 @@ $(eval $(call BuildPackage,luci-app-livestats))
 $(eval $(call BuildPackage,luci-app-asterisk))
 $(eval $(call BuildPackage,luci-app-polipo))
 $(eval $(call BuildPackage,luci-app-openvpn))
+$(eval $(call BuildPackage,luci-app-p2pblock))
 
 $(eval $(call BuildPackage,luci-sgi-cgi))
 
