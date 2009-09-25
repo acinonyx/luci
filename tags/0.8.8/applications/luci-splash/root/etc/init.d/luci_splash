@@ -1,0 +1,134 @@
+#!/bin/sh /etc/rc.common
+START=70
+EXTRA_COMMANDS=clear_leases
+
+iface_add() {
+	local cfg="$1"
+	
+	config_get zone "$cfg" zone
+	[ -n "$zone" ] || return 0
+	
+	config_get net "$cfg" network
+	[ -n "$net" ] || return 0
+	
+	config_get ipaddr "$net" ipaddr
+	[ -n "$ipaddr" ] || return 0
+	
+	config_get netmask "$net" netmask
+	[ -n "$netmask" ] || return 0
+	
+	eval "$(ipcalc.sh $ipaddr $netmask)"
+
+	iptables -t nat -A prerouting_${zone} -j luci_splash_prerouting
+	iptables -t nat -A luci_splash_prerouting -s "$NETWORK/$PREFIX" -p ! tcp -j luci_splash_portal
+	iptables -t nat -A luci_splash_prerouting -s "$NETWORK/$PREFIX" -d ! "$ipaddr" -j luci_splash_portal
+	iptables -t nat -A luci_splash_prerouting -s "$NETWORK/$PREFIX" -d "$ipaddr" -p tcp -m multiport ! --dport 22,80,443 -j luci_splash_portal
+}
+
+iface_del() {
+	config_get zone "$1" zone                                                                
+	[ -n "$zone" ] || return 0
+	while iptables -t nat -D prerouting_${zone} -j luci_splash_prerouting 2>&-; do :; done
+}
+
+blacklist_add() {
+	local cfg="$1"
+	
+	config_get mac "$cfg" mac
+	[ -n "$mac" ] && {
+		iptables -I luci_splash_counter -m mac --mac-source "$mac" -j RETURN
+		iptables -t nat -I luci_splash_leases -m mac --mac-source "$mac" -j DROP
+	}
+}
+
+whitelist_add() {
+	local cfg="$1"
+	
+	config_get mac "$cfg" mac
+	config_get ban "$cfg" kicked
+
+	ban=${ban:+DROP}
+
+	[ -n "$mac" ] && {
+		iptables -I luci_splash_counter -m mac --mac-source "$mac" -j RETURN
+		iptables -t nat -I luci_splash_leases -m mac --mac-source "$mac" -j "${ban:-RETURN}"
+	}
+}
+
+boot() {
+	### We are started by the firewall include
+	exit 0
+}
+
+start() {
+	### Read chains from config
+	include /lib/network
+	scan_interfaces
+	config_load luci_splash
+	
+	### Create subchains
+	iptables -N luci_splash_counter
+	iptables -t nat -N luci_splash_portal
+	iptables -t nat -N luci_splash_leases
+	iptables -t nat -N luci_splash_prerouting
+
+	### Build the main and portal rule
+	config_foreach blacklist_add blacklist
+	config_foreach whitelist_add whitelist
+	config_foreach whitelist_add lease
+	config_foreach iface_add iface
+	
+	### Build the portal rule
+	iptables -I INPUT -j luci_splash_counter
+	iptables -I FORWARD -j luci_splash_counter
+	iptables -t nat -A luci_splash_portal -p udp --dport 33434:33523 -j RETURN
+	iptables -t nat -A luci_splash_portal -p icmp -j RETURN
+	iptables -t nat -A luci_splash_portal -p udp --dport 53 -j RETURN
+	iptables -t nat -A luci_splash_portal -j luci_splash_leases
+	
+	### Build the leases rule
+	iptables -t nat -A luci_splash_leases -p tcp --dport 80 -j REDIRECT --to-ports 8082
+	iptables -t nat -A luci_splash_leases -j DROP
+	
+	### Add crontab entry
+	test -f /etc/crontabs/root || touch /etc/crontabs/root
+	grep -q luci-splash /etc/crontabs/root || {
+		echo '*/5 * * * * 	/usr/sbin/luci-splash sync' >> /etc/crontabs/root
+	}
+
+	### Start the splash httpd
+	start-stop-daemon -S -m -p /var/run/luci-splashd.pid -b -q -x /usr/bin/luci-splashd
+}
+
+stop() {
+	### Clear interface rules
+	config_load luci_splash
+	config_foreach iface_del iface
+	iptables -D INPUT -j luci_splash_counter
+	iptables -D FORWARD -j luci_splash_counter
+        
+	### Clear subchains
+	iptables -t nat -F luci_splash_leases
+	iptables -t nat -F luci_splash_portal
+	iptables -t nat -F luci_splash_prerouting
+	iptables -F luci_splash_counter
+	
+	### Delete subchains
+	iptables -t nat -X luci_splash_leases
+	iptables -t nat -X luci_splash_portal
+	iptables -t nat -X luci_splash_prerouting
+	iptables -X luci_splash_counter
+
+	### Stop the splash httpd
+	start-stop-daemon -K -p /var/run/luci-splashd.pid -s KILL -q
+	
+	sed -ie '/\/usr\/sbin\/luci-splash sync/d' /var/spool/cron/crontabs/root
+}
+
+	
+clear_leases() {
+	stop
+	while uci -P /var/state del luci_splash.@lease[0] 2>&-;do :; done
+	start
+}
+
