@@ -121,9 +121,6 @@ define Package/luci-core/config
        config PACKAGE_luci-core_source
                bool "Full Source"
 
-       config PACKAGE_luci-core_zipped
-               bool "Precompiled and compressed"
-
        endchoice
 endef
 
@@ -214,6 +211,16 @@ define Package/luci-json/install
 endef
 
 
+define Package/luci-lmo
+  $(call Package/luci/libtemplate)
+  TITLE:=lmo
+endef
+
+define Package/luci-lmo/install
+	$(call Package/luci/install/template,$(1),libs/lmo)
+endef
+
+
 define Package/luci-luanet
   $(call Package/luci/libtemplate)
   TITLE:=luanet
@@ -243,7 +250,7 @@ NIXIO_TLS:=axtls
 define Package/luci-nixio
   $(call Package/luci/libtemplate)
   TITLE:=NIXIO POSIX Library
-  DEPENDS:=
+  DEPENDS:=+PACKAGE_luci-nixio_openssl:libopenssl +PACKAGE_luci-nixio_cyassl:libcyassl-luci
 endef
 
 define Package/luci-nixio/install
@@ -301,7 +308,7 @@ endef
 
 define Package/luci-web
   $(call Package/luci/libtemplate)
-  DEPENDS+=+luci-http +luci-sys +luci-uci +luci-lucid +luci-sgi-cgi
+  DEPENDS+=+luci-http +luci-sys +luci-uci +luci-lucid +luci-sgi-cgi +luci-lmo
   TITLE:=MVC Webframework
   $(call Config,luci.main.lang,string,en,Default Language)
 endef
@@ -507,7 +514,6 @@ endef
 define Package/luci-app-statistics/install
 	$(call Package/luci/install/template,$(1),applications/luci-statistics)
 endef
-
 
 define Package/luci-app-upnp
   $(call Package/luci/webtemplate)
@@ -736,7 +742,8 @@ endef
 define Package/luci-theme-openwrt
   $(call Package/luci/thtemplate)
   TITLE:=OpenWrt.org (default)
-  DEPENDS:=+luci-theme-base
+  DEPENDS:=+luci-theme-base luci-core
+  DEFAULT:=y if PACKAGE_luci-core
 endef
 
 define Package/luci-theme-openwrt/install
@@ -855,6 +862,16 @@ define Package/luci-i18n-portuguese/install
 endef
 
 
+define Package/luci-i18n-spanish
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Spanish (by Guillermo Javier Nardoni)
+endef
+
+define Package/luci-i18n-spanish/install
+	$(call Package/luci/install/template,$(1),i18n/spanish)
+endef
+
+
 ### Compile ###
 ifneq ($(CONFIG_PACKAGE_luci-core),)
 	PKG_SELECTED_MODULES+=libs/core
@@ -876,6 +893,9 @@ ifneq ($(CONFIG_PACKAGE_luci-ipkg),)
 endif
 ifneq ($(CONFIG_PACKAGE_luci-json),)
 	PKG_SELECTED_MODULES+=libs/json
+endif
+ifneq ($(CONFIG_PACKAGE_luci-lmo),)
+	PKG_SELECTED_MODULES+=libs/lmo
 endif
 ifneq ($(CONFIG_PACKAGE_luci-luanet),)
 	PKG_SELECTED_MODULES+=libs/luanet
@@ -1049,6 +1069,9 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-i18n-portuguese),)
 	PKG_SELECTED_MODULES+=i18n/portuguese
 endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-spanish),)
+	PKG_SELECTED_MODULES+=i18n/spanish
+endif
 
 
 MAKE_FLAGS += \
@@ -1067,6 +1090,7 @@ $(eval $(call BuildPackage,luci-http))
 $(eval $(call BuildPackage,luci-httpclient))
 $(eval $(call BuildPackage,luci-ipkg))
 $(eval $(call BuildPackage,luci-json))
+$(eval $(call BuildPackage,luci-lmo))
 $(eval $(call BuildPackage,luci-luanet))
 $(eval $(call BuildPackage,luci-lucid))
 $(eval $(call BuildPackage,luci-nixio))
@@ -1127,3 +1151,4 @@ $(eval $(call BuildPackage,luci-i18n-japanese))
 $(eval $(call BuildPackage,luci-i18n-greek))
 $(eval $(call BuildPackage,luci-i18n-catalan))
 $(eval $(call BuildPackage,luci-i18n-portuguese))
+$(eval $(call BuildPackage,luci-i18n-spanish))

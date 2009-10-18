@@ -15,7 +15,10 @@ $Id$
 
 -- Data init --
 
-local uci = luci.model.uci.cursor()
+local fs  = require "nixio.fs"
+local sys = require "luci.sys"
+local uci = require "luci.model.uci".cursor()
+
 if not uci:get("network", "wan") then
 	uci:section("network", "interface", "wan", {proto="none", ifname=" "})
 	uci:save("network")
@@ -24,7 +27,7 @@ end
 
 local wlcursor = luci.model.uci.cursor_state()
 local wireless = wlcursor:get_all("wireless")
-local wifidata = luci.sys.wifi.getiwconfig()
+local wifidata = sys.wifi.getiwconfig()
 local wifidevs = {}
 local ifaces = {}
 
@@ -99,7 +102,7 @@ function scan.write(self, section)
 	m.autoapply = false
 	t2.render = t2._render
 	local ifname = self.map:get(section, "ifname")
-	luci.util.update(t2.data, luci.sys.wifi.iwscan(ifname))
+	luci.util.update(t2.data, sys.wifi.iwscan(ifname))
 end
 
 t2._render = t2.render
@@ -218,26 +221,26 @@ encr:value("none", "No Encryption")
 encr:value("wep", "WEP")
 
 if hwtype == "atheros" or hwtype == "mac80211" then
-	local supplicant = luci.fs.mtime("/usr/sbin/wpa_supplicant")
-	local hostapd = luci.fs.mtime("/usr/sbin/hostapd")
+	local supplicant = fs.access("/usr/sbin/wpa_supplicant")
+	local hostapd    = fs.access("/usr/sbin/hostapd")
 
 	if hostapd and supplicant then
 		encr:value("psk", "WPA-PSK")
 		encr:value("psk2", "WPA2-PSK")
-		encr:value("mixed", "WPA-PSK/WPA2-PSK Mixed Mode")
+		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode")
 		encr:value("wpa", "WPA-Radius", {mode="ap"}, {mode="sta"})
 		encr:value("wpa2", "WPA2-Radius", {mode="ap"}, {mode="sta"})
 	elseif hostapd and not supplicant then
 		encr:value("psk", "WPA-PSK", {mode="ap"}, {mode="adhoc"})
 		encr:value("psk2", "WPA2-PSK", {mode="ap"}, {mode="adhoc"})
-		encr:value("mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="ap"}, {mode="adhoc"})
+		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="ap"}, {mode="adhoc"})
 		encr:value("wpa", "WPA-Radius", {mode="ap"})
 		encr:value("wpa2", "WPA2-Radius", {mode="ap"})
 		encr.description = translate("wifi_wpareq")
 	elseif not hostapd and supplicant then
 		encr:value("psk", "WPA-PSK", {mode="sta"})
 		encr:value("psk2", "WPA2-PSK", {mode="sta"})
-		encr:value("mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="sta"})
+		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="sta"})
 		encr:value("wpa", "WPA-EAP", {mode="sta"})
 		encr:value("wpa2", "WPA2-EAP", {mode="sta"})
 		encr.description = translate("wifi_wpareq")
@@ -255,7 +258,7 @@ key:depends("encryption", "wep")
 key:depends("encryption", "psk")
 key:depends("encryption", "psk2")
 key:depends("encryption", "psk+psk2")
-key:depends("encryption", "mixed")
+key:depends("encryption", "psk-mixed")
 key:depends({mode="ap", encryption="wpa"})
 key:depends({mode="ap", encryption="wpa2"})
 key.rmempty = true

@@ -25,7 +25,7 @@ limitations under the License.
 ]]--
 
 --- LuCI web dispatcher.
-local fs = require "luci.fs"
+local fs = require "nixio.fs"
 local sys = require "luci.sys"
 local init = require "luci.init"
 local util = require "luci.util"
@@ -108,13 +108,21 @@ end
 
 --- Dispatch an HTTP request.
 -- @param request	LuCI HTTP Request object
-function httpdispatch(request)
+function httpdispatch(request, prefix)
 	luci.http.context.request = request
-	context.request = {}
+
+	local r = {}
+	context.request = r
 	local pathinfo = http.urldecode(request:getenv("PATH_INFO") or "", true)
 
+	if prefix then
+		for _, node in ipairs(prefix) do
+			r[#r+1] = node
+		end
+	end
+
 	for node in pathinfo:gmatch("[^/]+") do
-		table.insert(context.request, node)
+		r[#r+1] = node
 	end
 
 	local stat, err = util.coxpcall(function()
@@ -129,7 +137,7 @@ end
 --- Dispatches a LuCI virtual path.
 -- @param request	Virtual path
 function dispatch(request)
-	--context._disable_memtrace = require "luci.debug".trap_memtrace()
+	--context._disable_memtrace = require "luci.debug".trap_memtrace("l")
 	local ctx = context
 	ctx.path = request
 	ctx.urltoken   = ctx.urltoken or {}
@@ -200,7 +208,7 @@ function dispatch(request)
 		end
 	end
 
-	ctx.requestpath = freq
+	ctx.requestpath = ctx.requestpath or freq
 	ctx.path = preq
 
 	if track.i18n then
@@ -211,8 +219,7 @@ function dispatch(request)
 	if (c and c.index) or not track.notemplate then
 		local tpl = require("luci.template")
 		local media = track.mediaurlbase or luci.config.main.mediaurlbase
-		if not tpl.Template("themes/%s/header" % fs.basename(media)) then 
-		--if not pcall(tpl.Template, "themes/%s/header" % fs.basename(media)) then
+		if not pcall(tpl.Template, "themes/%s/header" % fs.basename(media)) then
 			media = nil
 			for name, theme in pairs(luci.config.themes) do
 				if name:sub(1,1) ~= "." and pcall(tpl.Template,
@@ -223,7 +230,15 @@ function dispatch(request)
 			assert(media, "No valid theme found")
 		end
 
-		local viewns = setmetatable({}, {__index=function(table, key)
+		tpl.context.viewns = setmetatable({
+		   write       = luci.http.write;
+		   include     = function(name) tpl.Template(name):render(getfenv(2)) end;
+		   translate   = function(...) return require("luci.i18n").translate(...) end;
+		   striptags   = util.striptags;
+		   media       = media;
+		   theme       = fs.basename(media);
+		   resource    = luci.config.main.resourcebase
+		}, {__index=function(table, key)
 			if key == "controller" then
 				return build_url()
 			elseif key == "REQUEST_URI" then
@@ -232,14 +247,6 @@ function dispatch(request)
 				return rawget(table, key) or _G[key]
 			end
 		end})
-		tpl.context.viewns = viewns
-		viewns.write       = luci.http.write
-		viewns.include     = function(name) tpl.Template(name):render(getfenv(2)) end
-		viewns.translate   = function(...) return require("luci.i18n").translate(...) end
-		viewns.striptags   = util.striptags
-		viewns.media       = media
-		viewns.theme       = fs.basename(media)
-		viewns.resource    = luci.config.main.resourcebase
 	end
 
 	track.dependent = (track.dependent ~= false)
@@ -258,7 +265,7 @@ function dispatch(request)
 		local verifytoken = false
 		if not sess then
 			sess = luci.http.getcookie("sysauth")
-			sess = sess and sess:match("^[A-F0-9]+$")
+			sess = sess and sess:match("^[a-f0-9]*$")
 			verifytoken = true
 		end
 
@@ -271,6 +278,12 @@ function dispatch(request)
 			sdat = sdat()
 			if not verifytoken or ctx.urltoken.stok == sdat.token then
 				user = sdat.user
+			end
+		else
+			local eu = http.getenv("HTTP_AUTH_USER")
+			local ep = http.getenv("HTTP_AUTH_PASS")
+			if eu and ep and luci.sys.user.checkpasswd(eu, ep) then
+				authen = function() return eu end
 			end
 		end
 
@@ -293,6 +306,7 @@ function dispatch(request)
 					end
 					luci.http.header("Set-Cookie", "sysauth=" .. sid.."; path="..build_url())
 					ctx.authsession = sid
+					ctx.authuser = user
 				end
 			else
 				luci.http.status(403, "Forbidden")
@@ -300,6 +314,7 @@ function dispatch(request)
 			end
 		else
 			ctx.authsession = sess
+			ctx.authuser = user
 		end
 	end
 
@@ -394,19 +409,16 @@ end
 function createindex_plain(path, suffixes)
 	local controllers = { }
 	for _, suffix in ipairs(suffixes) do
-		controllers = util.combine(
-			controllers,
-			luci.fs.glob(path .. "*" .. suffix) or {},
-			luci.fs.glob(path .. "*/*" .. suffix) or {}
-		)
+		nixio.util.consume((fs.glob(path .. "*" .. suffix)), controllers)
+		nixio.util.consume((fs.glob(path .. "*/*" .. suffix)), controllers)
 	end
 
 	if indexcache then
-		local cachedate = fs.mtime(indexcache)
+		local cachedate = fs.stat(indexcache, "mtime")
 		if cachedate then
 			local realdate = 0
 			for _, obj in ipairs(controllers) do
-				local omtime = fs.mtime(path .. "/" .. obj)
+				local omtime = fs.stat(path .. "/" .. obj, "mtime")
 				realdate = (omtime and omtime > realdate) and omtime or realdate
 			end
 

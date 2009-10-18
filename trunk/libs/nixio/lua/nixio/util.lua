@@ -15,6 +15,7 @@ $Id$
 local table = require "table"
 local nixio = require "nixio"
 local getmetatable, assert, pairs, type = getmetatable, assert, pairs, type
+local tostring = tostring
 
 module "nixio.util"
 
@@ -26,10 +27,12 @@ local file = nixio.meta_file
 local uname = nixio.uname()
 local ZBUG = uname.sysname == "Linux" and uname.release:sub(1, 3) == "2.4"
 
-function consume(iter)
-	local tbl = {}
-	for obj in iter do
-		tbl[#tbl+1] = obj
+function consume(iter, append)
+	local tbl = append or {}
+	if iter then
+		for obj in iter do
+			tbl[#tbl+1] = obj
+		end
 	end
 	return tbl
 end
@@ -77,6 +80,7 @@ end
 meta.recvall = meta.readall
 
 function meta.writeall(self, data)
+	data = tostring(data)
 	local sent, code, msg = self:write(data)
 
 	if not sent then

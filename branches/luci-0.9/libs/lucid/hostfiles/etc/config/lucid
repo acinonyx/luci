@@ -10,18 +10,13 @@ config DirectoryPublisher webroot
 	option physical host/www
 	option virtual ''
 	option domain ''
-	list read ':lo'
-	list read ':br-lan'
-	list read 'root'
 	
 config LuciWebPublisher luciweb
 	option name 'LuCI Webapplication'
 	option physical ''
 	list virtual /luci
 	option domain ''
-	list exec ':lo'
-	list exec ':br-lan'
-	list exec 'root'
+	option home 1
 	
 config RPCPublisher	mainrpc
 	option namespace 'luci.lucid.rpc'
@@ -71,4 +66,3 @@ config 'Redirector' 'splashredir'
         option 'virtual' '/'
         option 'physical' ':80/luci/splash'
 
-	

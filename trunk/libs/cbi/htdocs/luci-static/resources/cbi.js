@@ -2,7 +2,7 @@
 	LuCI - Lua Configuration Interface
 
 	Copyright 2008 Steven Barth <steven@midlink.org>
-	Copyright 2008 Jo-Philipp Wich <xm@leipzig.freifunk.net>
+	Copyright 2008-2009 Jo-Philipp Wich <xm@subsignal.org>
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 */
 
 var cbi_d = [];
+var cbi_t = [];
+var cbi_c = [];
 
 function cbi_d_add(field, dep, next) {
 	var obj = document.getElementById(field);
@@ -78,7 +80,9 @@ function cbi_d_update() {
 
 		if (node && node.parentNode && !cbi_d_check(entry.deps)) {
 			node.parentNode.removeChild(node);
-			state = (state || !node.parentNode)
+			state = (state || !node.parentNode);
+			if( entry.parent )
+				cbi_c[entry.parent]--;
 		} else if ((!node || !node.parentNode) && cbi_d_check(entry.deps)) {
 			if (!next) {
 				parent.appendChild(entry.node);
@@ -86,8 +90,15 @@ function cbi_d_update() {
 				next.parentNode.insertBefore(entry.node, next);
 			}
 			state = (state || (node && node.parentNode))
+			if( entry.parent )
+				cbi_c[entry.parent]++;
 		}
 	}
+
+	if (entry.parent) {
+		cbi_t_update();
+	}
+
 	if (state) {
 		cbi_d_update();
 	}
@@ -219,3 +230,50 @@ function cbi_hijack_forms(layer, win, fail, load) {
 		});
 	}
 }
+
+
+function cbi_t_add(section, tab) {
+	var t = document.getElementById('tab.' + section + '.' + tab);
+	var c = document.getElementById('container.' + section + '.' + tab);
+
+	if( t && c ) {
+		cbi_t[section] = (cbi_t[section] || [ ]);
+		cbi_t[section][tab] = { 'tab': t, 'container': c, 'cid': c.id };
+	}
+}
+
+function cbi_t_switch(section, tab) {
+	if( cbi_t[section] && cbi_t[section][tab] ) {
+		var o = cbi_t[section][tab];
+		var h = document.getElementById('tab.' + section);
+		for( var tid in cbi_t[section] ) {
+			var o2 = cbi_t[section][tid];
+			if( o.tab.id != o2.tab.id ) {
+				o2.tab.className = o2.tab.className.replace(/(^| )cbi-tab( |$)/, " cbi-tab-disabled ");
+				o2.container.style.display = 'none';
+			}
+			else {
+				if(h) h.value = tab;
+				o2.tab.className = o2.tab.className.replace(/(^| )cbi-tab-disabled( |$)/, " cbi-tab ");
+				o2.container.style.display = 'block';
+			}
+		}
+	}
+	return false
+}
+
+function cbi_t_update() {
+	for( var sid in cbi_t )
+		for( var tid in cbi_t[sid] )
+			if( cbi_c[cbi_t[sid][tid].cid] == 0 ) {
+				cbi_t[sid][tid].tab.style.display = 'none';
+			}
+			else if( cbi_t[sid][tid].tab && cbi_t[sid][tid].tab.style.display == 'none' ) {
+				cbi_t[sid][tid].tab.style.display = '';
+
+				var t = cbi_t[sid][tid].tab;
+				window.setTimeout(function() { t.className = t.className.replace(/ cbi-tab-highlighted/g, '') }, 750);
+				cbi_t[sid][tid].tab.className += ' cbi-tab-highlighted';
+			}
+}
+

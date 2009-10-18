@@ -125,9 +125,6 @@ define Package/luci-core/config
        config PACKAGE_luci-core_source
                bool "Full Source"
 
-       config PACKAGE_luci-core_zipped
-               bool "Precompiled and compressed"
-
        endchoice
 endef
 
@@ -218,6 +215,16 @@ define Package/luci-json/install
 endef
 
 
+define Package/luci-lmo
+  $(call Package/luci/libtemplate)
+  TITLE:=lmo
+endef
+
+define Package/luci-lmo/install
+	$(call Package/luci/install/template,$(1),libs/lmo)
+endef
+
+
 define Package/luci-luanet
   $(call Package/luci/libtemplate)
   TITLE:=luanet
@@ -226,6 +233,16 @@ endef
 
 define Package/luci-luanet/install
 	$(call Package/luci/install/template,$(1),libs/luanet)
+endef
+
+
+define Package/luci-iwinfo
+  $(call Package/luci/libtemplate)
+  TITLE:=Wireless abstration library
+endef
+
+define Package/luci-iwinfo/install
+	$(call Package/luci/install/template,$(1),libs/iwinfo)
 endef
 
 
@@ -247,7 +264,7 @@ NIXIO_TLS:=axtls
 define Package/luci-nixio
   $(call Package/luci/libtemplate)
   TITLE:=NIXIO POSIX Library
-  DEPENDS:=
+  DEPENDS:=+PACKAGE_luci-nixio_openssl:libopenssl +PACKAGE_luci-nixio_cyassl:libcyassl-luci
 endef
 
 define Package/luci-nixio/install
@@ -296,6 +313,7 @@ endef
 define Package/luci-sys
   $(call Package/luci/libtemplate)
   TITLE:=LuCI Linux/POSIX system library
+  DEPENDS:=+luci-iwinfo
 endef
 
 define Package/luci-sys/install
@@ -305,7 +323,7 @@ endef
 
 define Package/luci-web
   $(call Package/luci/libtemplate)
-  DEPENDS+=+luci-http +luci-sys +luci-uci +luci-lucid +luci-sgi-cgi
+  DEPENDS+=+luci-http +luci-sys +luci-uci +luci-lucid +luci-sgi-cgi +luci-lmo
   TITLE:=MVC Webframework
   $(call Config,luci.main.lang,string,en,Default Language)
 endef
@@ -512,6 +530,56 @@ define Package/luci-app-statistics/install
 	$(call Package/luci/install/template,$(1),applications/luci-statistics)
 endef
 
+define Package/luci-app-diag-core
+  $(call Package/luci/webtemplate)
+  DEPENDS+=+PACKAGE_luci-app-diag-core:luci-admin-core 
+  TITLE:=LuCI Diagnostics Tools (Core)
+endef
+
+define Package/luci-app-diag-devinfo
+  $(call Package/luci/webtemplate)
+  DEPENDS+=+PACKAGE_luci_app-diag-devinfo:luci-app-diag-core \
+	+PACKAGE_luci-app-diag-devinfo:smap \
+	+PACKAGE_luci-app-diag-devinfo:netdiscover \
+	+PACKAGE_luci-app-diag-devinfo:mac-to-devinfo \
+	+PACKAGE_luci-app-diag-devinfo:httping \
+	+PACKAGE_luci-app-diag-devinfo:smap-to-devinfo \
+	+PACAKGE_luci-app-diag-devinfo:netdiscover-to-devinfo
+  TITLE:=LuCI Diagnostics Tools (Device Info)
+endef
+
+define Package/luci-app-voice-core
+  $(call Package/luci/webtemplate)
+  DEPENDS+=+PACKAGE_luci-app-voice-core:luci-admin-core 
+  TITLE:=LuCI Voice Software (Core)
+endef
+
+define Package/luci-app-voice-diag
+  $(call Package/luci/webtemplate)
+  DEPENDS+=+PACKAGE_luci-app-voice-diag:luci-app-voice-core \
+	+PACKAGE_luci-apps-voice-diag:luci-app-diag-devinfo
+  TITLE:=LuCI Voice Software (Diagnostics)
+endef
+
+define Package/luci-app-diag-devinfo/conffiles
+/etc/config/luci_devinfo
+endef
+
+define Package/luci-app-diag-core/install
+	$(call Package/luci/install/template,$(1),applications/luci-diag-core)
+endef
+
+define Package/luci-app-diag-devinfo/install
+	$(call Package/luci/install/template,$(1),applications/luci-diag-devinfo)
+endef
+
+define Package/luci-app-voice-core/install
+	$(call Package/luci/install/template,$(1),applications/luci-voice-core)
+endef
+
+define Package/luci-app-voice-diag/install
+	$(call Package/luci/install/template,$(1),applications/luci-voice-diag)
+endef
 
 define Package/luci-app-upnp
   $(call Package/luci/webtemplate)
@@ -750,7 +818,8 @@ endef
 define Package/luci-theme-openwrt
   $(call Package/luci/thtemplate)
   TITLE:=OpenWrt.org (default)
-  DEPENDS:=+luci-theme-base
+  DEPENDS:=+luci-theme-base luci-core
+  DEFAULT:=y if PACKAGE_luci-core
 endef
 
 define Package/luci-theme-openwrt/install
@@ -869,6 +938,26 @@ define Package/luci-i18n-portuguese/install
 endef
 
 
+define Package/luci-i18n-spanish
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Spanish (by Guillermo Javier Nardoni)
+endef
+
+define Package/luci-i18n-spanish/install
+	$(call Package/luci/install/template,$(1),i18n/spanish)
+endef
+
+
+define Package/luci-i18n-vietnamese
+  $(call Package/luci/i18ntemplate)
+  TITLE:=Vietnamese (by Hong Phuc Dang)
+endef
+
+define Package/luci-i18n-vietnamese/install
+	$(call Package/luci/install/template,$(1),i18n/vietnamese)
+endef
+
+
 ### Compile ###
 ifneq ($(CONFIG_PACKAGE_luci-core),)
 	PKG_SELECTED_MODULES+=libs/core
@@ -891,8 +980,14 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-json),)
 	PKG_SELECTED_MODULES+=libs/json
 endif
+ifneq ($(CONFIG_PACKAGE_luci-lmo),)
+	PKG_SELECTED_MODULES+=libs/lmo
+endif
 ifneq ($(CONFIG_PACKAGE_luci-luanet),)
 	PKG_SELECTED_MODULES+=libs/luanet
+endif
+ifneq ($(CONFIG_PACKAGE_luci-iwinfo),)
+	PKG_SELECTED_MODULES+=libs/iwinfo
 endif
 ifneq ($(CONFIG_PACKAGE_luci-lucid),)
 	PKG_SELECTED_MODULES+=libs/lucid libs/lucid-http
@@ -956,6 +1051,18 @@ ifneq ($(CONFIG_PACKAGE_luci-app-splash),)
 endif
 ifneq ($(CONFIG_PACKAGE_luci-app-statistics),)
 	PKG_SELECTED_MODULES+=applications/luci-statistics
+endif
+ifneq ($(CONFIG_PACKAGE_luci-app-voice-core),)
+	PKG_SELECTED_MODULES+=applications/luci-voice-core
+endif
+ifneq ($(CONFIG_PACKAGE_luci-app-voice-diag),)
+	PKG_SELECTED_MODULES+=applications/luci-voice-diag
+endif
+ifneq ($(CONFIG_PACKAGE_luci-app-diag-core),)
+	PKG_SELECTED_MODULES+=applications/luci-diag-core
+endif
+ifneq ($(CONFIG_PACKAGE_luci-app-diag-devinfo),)
+	PKG_SELECTED_MODULES+=applications/luci-diag-devinfo
 endif
 ifneq ($(CONFIG_PACKAGE_luci-app-upnp),)
 	PKG_SELECTED_MODULES+=applications/luci-upnp
@@ -1066,6 +1173,12 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-i18n-portuguese),)
 	PKG_SELECTED_MODULES+=i18n/portuguese
 endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-spanish),)
+	PKG_SELECTED_MODULES+=i18n/spanish
+endif
+ifneq ($(CONFIG_PACKAGE_luci-i18n-vietnamese),)
+	PKG_SELECTED_MODULES+=i18n/vietnamese
+endif
 
 
 MAKE_FLAGS += \
@@ -1084,7 +1197,9 @@ $(eval $(call BuildPackage,luci-http))
 $(eval $(call BuildPackage,luci-httpclient))
 $(eval $(call BuildPackage,luci-ipkg))
 $(eval $(call BuildPackage,luci-json))
+$(eval $(call BuildPackage,luci-lmo))
 $(eval $(call BuildPackage,luci-luanet))
+$(eval $(call BuildPackage,luci-iwinfo))
 $(eval $(call BuildPackage,luci-lucid))
 $(eval $(call BuildPackage,luci-nixio))
 $(eval $(call BuildPackage,luci-px5g))
@@ -1108,6 +1223,10 @@ $(eval $(call BuildPackage,luci-app-olsr))
 $(eval $(call BuildPackage,luci-app-qos))
 $(eval $(call BuildPackage,luci-app-splash))
 $(eval $(call BuildPackage,luci-app-statistics))
+$(eval $(call BuildPackage,luci-app-diag-core))
+$(eval $(call BuildPackage,luci-app-diag-devinfo))
+$(eval $(call BuildPackage,luci-app-voice-core))
+$(eval $(call BuildPackage,luci-app-voice-diag))
 $(eval $(call BuildPackage,luci-app-upnp))
 $(eval $(call BuildPackage,luci-app-ntpc))
 $(eval $(call BuildPackage,luci-app-ddns))
@@ -1145,3 +1264,5 @@ $(eval $(call BuildPackage,luci-i18n-japanese))
 $(eval $(call BuildPackage,luci-i18n-greek))
 $(eval $(call BuildPackage,luci-i18n-catalan))
 $(eval $(call BuildPackage,luci-i18n-portuguese))
+$(eval $(call BuildPackage,luci-i18n-spanish))
+$(eval $(call BuildPackage,luci-i18n-vietnamese))

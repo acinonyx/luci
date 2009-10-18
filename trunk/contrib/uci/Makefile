@@ -1,7 +1,7 @@
 include ../../build/config.mk
 include ../../build/gccconfig.mk
 
-UCI_VERSION  = 0.7.3
+UCI_VERSION  = 0.7.5
 UCI_SITE    = http://mirror2.openwrt.org/sources
 UCI_DIR     = uci-$(UCI_VERSION)
 UCI_FILE    = $(UCI_DIR).tar.gz
@@ -23,9 +23,12 @@ $(UCI_FILE):
 $(UCI_PATCHDIR)/series:
 	(cd $(UCI_PATCHDIR); ls *.patch | sort > series)
 
-$(UCI_DIR)/.prepared: $(UCI_FILE)
+$(UCI_DIR)/.prepared: $(UCI_PATCHDIR)/series $(UCI_FILE)
 	rm -rf $(UCI_DIR)
 	tar xvfz $(UCI_FILE)
+	while read patch; do \
+	  patch -d $(UCI_DIR) -p1 < $(UCI_PATCHDIR)/$$patch; \
+	done < $(UCI_PATCHDIR)/series
 	touch $@
 
 compile: $(UCI_DIR)/.prepared

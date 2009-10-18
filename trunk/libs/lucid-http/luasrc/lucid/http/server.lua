@@ -14,6 +14,7 @@ $Id$
 local ipairs, pairs = ipairs, pairs
 local tostring, tonumber = tostring, tonumber
 local pcall, assert, type = pcall, assert, type
+local set_memory_limit = set_memory_limit
 
 local os = require "os"
 local nixio = require "nixio"
@@ -131,6 +132,7 @@ function Handler.checkrestricted(self, request)
 		end
 		
 		if stat then
+			request.env.HTTP_AUTH_USER, request.env.HTTP_AUTH_PASS = user, pass
 			return
 		end
 	end
@@ -196,6 +198,10 @@ function VHost.process(self, request, ...)
 	-- Call URI part
 	request.env.PATH_INFO = uri
 	
+	if self.default and uri == "/" then
+		return 302, {Location = self.default}
+	end
+
 	for k, h in pairs(self.handlers) do
 		if #k > hlen then
 			if uri == k or (uri:sub(1, #k) == k and uri:byte(#k+1) == sc) then
@@ -287,7 +293,7 @@ local function chunksink(sock)
 		if not chunk then
 			return sock:writeall("0\r\n\r\n")
 		else
-			return sock:writeall(("%X\r\n%s\r\n"):format(#chunk, chunk))
+			return sock:writeall(("%X\r\n%s\r\n"):format(#chunk, tostring(chunk)))
 		end
 	end
 end
@@ -408,8 +414,13 @@ function Server.process(self, client, env)
 	local close = false
 	local stat, code, msg, message, err
 	
-	client:setsockopt("socket", "rcvtimeo", 5)
-	client:setsockopt("socket", "sndtimeo", 5)
+	env.config.memlimit = tonumber(env.config.memlimit)
+	if env.config.memlimit and set_memory_limit then
+		set_memory_limit(env.config.memlimit)
+	end
+
+	client:setsockopt("socket", "rcvtimeo", 60)
+	client:setsockopt("socket", "sndtimeo", 60)
 	
 	repeat
 		-- parse headers
@@ -504,7 +515,7 @@ function Server.process(self, client, env)
 					headers["Content-Length"] = sourceout.len
 				end
 			end
-			if not headers["Content-Length"] then
+			if not headers["Content-Length"] and not close then
 				if message.env.SERVER_PROTOCOL == "HTTP/1.1" then
 					headers["Transfer-Encoding"] = "chunked"
 					sinkout = chunksink(client)
@@ -548,8 +559,15 @@ function Server.process(self, client, env)
 
 		if sourceout and stat then
 			if util.instanceof(sourceout, IOResource) then
-				stat, code, msg = sourceout.fd:copyz(client, sourceout.len)
-			else
+				if not headers["Transfer-Encoding"] then
+					stat, code, msg = sourceout.fd:copyz(client, sourceout.len)
+					sourceout = nil
+				else
+					sourceout = sourceout.fd:blocksource(nil, sourceout.len)
+				end
+			end
+
+			if sourceout then
 				stat, msg = ltn12.pump.all(sourceout, sinkout)
 			end
 		end

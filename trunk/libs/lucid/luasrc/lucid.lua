@@ -43,6 +43,8 @@ local SSTATE = "/tmp/.lucid_store"
 
 --- Starts a new LuCId superprocess.
 function start()
+	state:revert(UCINAME, "main")
+
 	prepare()
 
 	local detach = cursor:get(UCINAME, "main", "daemonize")
@@ -58,6 +60,12 @@ function start()
 	state:save(UCINAME)
 
 	run()
+end
+
+--- Returns the PID of the currently active LuCId process.
+function running()
+	local pid = tonumber(state:get(UCINAME, "main", "pid"))
+	return pid and nixio.kill(pid, 0) and pid
 end
 
 --- Stops any running LuCId superprocess. 
@@ -110,15 +118,21 @@ end
 -- This main function of LuCId will wait for events on given file descriptors.
 function run()
 	local pollint = tonumber((cursor:get(UCINAME, "main", "pollinterval")))
+	local threadlimit = tonumber((cursor:get(UCINAME, "main", "threadlimit")))
 
 	while true do
 		local stat, code = nixio.poll(pollt, pollint)
 		
 		if stat and stat > 0 then
+			local ok = false
 			for _, polle in ipairs(pollt) do
 				if polle.revents ~= 0 and polle.handler then
-					polle.handler(polle)
+					ok = ok or polle.handler(polle)
 				end
+			end
+			if not ok then
+				-- Avoid high CPU usage if thread limit is reached
+				nixio.nanosleep(0, 100000000)
 			end
 		elseif stat == 0 then
 			ifaddrs = nixio.getifaddrs()
@@ -195,6 +209,14 @@ function unregister_tick(cb)
 		end
 	end
 	return false
+end
+
+--- Tests whether a given number of processes can be created.
+-- @oaram num Processes to be created
+-- @return boolean status
+function try_process(num)
+	local threadlimit = tonumber((cursor:get(UCINAME, "main", "threadlimit")))
+	return not threadlimit or (threadlimit - tcount) >= (num or 1)
 end
 
 --- Create a new child process from a Lua function and assign a destructor.

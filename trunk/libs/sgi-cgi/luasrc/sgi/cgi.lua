@@ -25,6 +25,7 @@ limitations under the License.
 ]]--
 module("luci.sgi.cgi", package.seeall)
 local ltn12 = require("luci.ltn12")
+require("nixio.util")
 require("luci.http")
 require("luci.sys")
 require("luci.dispatcher")
@@ -79,11 +80,13 @@ function run()
 				io.write(hcache)
 				io.write("\r\n")
 			elseif id == 4 then
-				io.write(data1)
+				io.write(tostring(data1 or ""))
 			elseif id == 5 then
 				io.flush()
 				io.close()
 				active = false
+			elseif id == 6 then
+				data1:copyz(nixio.stdout, data2)
 			end
 		end
 	end
