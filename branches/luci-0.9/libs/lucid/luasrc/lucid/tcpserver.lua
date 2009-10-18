@@ -105,9 +105,12 @@ function prepare_daemon(config, server)
 end
 
 function accept(polle)
+	if not lucid.try_process() then
+		return false
+	end
 	local socket, host, port = polle.fd:accept()
 	if not socket then
-		return nixio.syslog("warn", "accept() failed: " .. port)
+		return nixio.syslog("warning", "accept() failed: " .. port)
 	end
 	
 	socket:setblocking(true)

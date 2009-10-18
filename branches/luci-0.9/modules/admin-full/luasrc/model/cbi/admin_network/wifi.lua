@@ -11,7 +11,10 @@ You may obtain a copy of the License at
 
 $Id$
 ]]--
-require("luci.tools.webadmin")
+
+local wa = require "luci.tools.webadmin"
+local fs = require "nixio.fs"
+
 arg[1] = arg[1] or ""
 
 m = Map("wireless", translate("networks"), translate("a_w_networks1"))
@@ -143,7 +146,7 @@ network = s:option(Value, "network", translate("network"), translate("a_w_networ
 network.rmempty = true
 network:value("")
 network.combobox_manual = translate("a_w_netmanual")
-luci.tools.webadmin.cbi_add_networks(network)
+wa.cbi_add_networks(network)
 
 function network.write(self, section, value)
 	if not m.uci:get("network", value) then
@@ -173,7 +176,7 @@ bssid = s:option(Value, "bssid", translate("wifi_bssid"))
 -------------------- MAC80211 Interface ----------------------
 
 if hwtype == "mac80211" then
-	if luci.fs.mtime("/usr/sbin/iw") then
+	if fs.access("/usr/sbin/iw") then
 		mode:value("mesh", "802.11s")
 	end
 
@@ -322,26 +325,26 @@ encr:value("none", "No Encryption")
 encr:value("wep", "WEP")
 
 if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
-	local supplicant = luci.fs.mtime("/usr/sbin/wpa_supplicant")
-	local hostapd = luci.fs.mtime("/usr/sbin/hostapd")
+	local supplicant = fs.access("/usr/sbin/wpa_supplicant")
+	local hostapd = fs.access("/usr/sbin/hostapd")
 
 	if hostapd and supplicant then
 		encr:value("psk", "WPA-PSK")
 		encr:value("psk2", "WPA2-PSK")
-		encr:value("mixed", "WPA-PSK/WPA2-PSK Mixed Mode")
+		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode")
 		encr:value("wpa", "WPA-EAP", {mode="ap"}, {mode="sta"})
 		encr:value("wpa2", "WPA2-EAP", {mode="ap"}, {mode="sta"})
 	elseif hostapd and not supplicant then
 		encr:value("psk", "WPA-PSK", {mode="ap"}, {mode="adhoc"}, {mode="ahdemo"})
 		encr:value("psk2", "WPA2-PSK", {mode="ap"}, {mode="adhoc"}, {mode="ahdemo"})
-		encr:value("mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="ap"}, {mode="adhoc"}, {mode="ahdemo"})
+		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="ap"}, {mode="adhoc"}, {mode="ahdemo"})
 		encr:value("wpa", "WPA-EAP", {mode="ap"})
 		encr:value("wpa2", "WPA2-EAP", {mode="ap"})
 		encr.description = translate("wifi_wpareq")
 	elseif not hostapd and supplicant then
 		encr:value("psk", "WPA-PSK", {mode="sta"})
 		encr:value("psk2", "WPA2-PSK", {mode="sta"})
-		encr:value("mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="sta"})
+		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode", {mode="sta"})
 		encr:value("wpa", "WPA-EAP", {mode="sta"})
 		encr:value("wpa2", "WPA2-EAP", {mode="sta"})
 		encr.description = translate("wifi_wpareq")
@@ -373,7 +376,7 @@ key:depends("encryption", "wep")
 key:depends("encryption", "psk")
 key:depends("encryption", "psk2")
 key:depends("encryption", "psk+psk2")
-key:depends("encryption", "mixed")
+key:depends("encryption", "psk-mixed")
 key:depends({mode="ap", encryption="wpa"})
 key:depends({mode="ap", encryption="wpa2"})
 key.rmempty = true

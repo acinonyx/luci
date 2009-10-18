@@ -2,7 +2,7 @@
 LuCI - Lua Configuration Interface
 
 Copyright 2008 Steven Barth <steven@midlink.org>
-Copyright 2008 Jo-Philipp Wich <xm@leipzig.freifunk.net>
+Copyright 2008 Jo-Philipp Wich <xm@subsignal.org>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,25 +13,40 @@ You may obtain a copy of the License at
 $Id$
 ]]--
 
-require("luci.tools.webadmin")
+local fs = require "nixio.fs"
+local nw = require "luci.model.network"
+local fw = require "luci.model.firewall"
+
 arg[1] = arg[1] or ""
 
-local has_3g    = luci.fs.mtime("/usr/bin/gcom")
-local has_pptp  = luci.fs.mtime("/usr/sbin/pptp")
-local has_pppd  = luci.fs.mtime("/usr/sbin/pppd")
-local has_pppoe = luci.fs.glob("/usr/lib/pppd/*/rp-pppoe.so")
-local has_pppoa = luci.fs.glob("/usr/lib/pppd/*/pppoatm.so")
+local has_3g    = fs.access("/usr/bin/gcom")
+local has_pptp  = fs.access("/usr/sbin/pptp")
+local has_pppd  = fs.access("/usr/sbin/pppd")
+local has_pppoe = fs.glob("/usr/lib/pppd/*/rp-pppoe.so")()
+local has_pppoa = fs.glob("/usr/lib/pppd/*/pppoatm.so")()
+local has_ipv6  = fs.access("/proc/net/ipv6_route")
 
 m = Map("network", translate("interfaces"), translate("a_n_ifaces1"))
+m:chain("firewall")
+
+nw.init(m.uci)
+fw.init(m.uci)
 
 s = m:section(NamedSection, arg[1], "interface")
-s.addremove = true
+s.addremove = false
 
-back = s:option(DummyValue, "_overview", translate("overview"))
+s:tab("general", translate("a_n_general", "General Setup"))
+if has_ipv6 then s:tab("ipv6", translate("a_n_ipv6", "IPv6 Setup")) end
+if has_pppd then s:tab("ppp", translate("a_n_ppp", "PPP Settings")) end
+s:tab("physical", translate("a_n_physical", "Physical Settings"))
+
+--[[
+back = s:taboption("general", DummyValue, "_overview", translate("overview"))
 back.value = ""
 back.titleref = luci.dispatcher.build_url("admin", "network", "network")
+]]
 
-p = s:option(ListValue, "proto", translate("protocol"))
+p = s:taboption("general", ListValue, "proto", translate("protocol"))
 p.override_scheme = true
 p.default = "static"
 p:value("static", translate("static"))
@@ -47,112 +62,120 @@ if not ( has_pppd and has_pppoe and has_pppoa and has_3g and has_pptp ) then
 	p.description = translate("network_interface_prereq")
 end
 
-br = s:option(Flag, "type", translate("a_n_i_bridge"), translate("a_n_i_bridge1"))
+br = s:taboption("physical", Flag, "type", translate("a_n_i_bridge"), translate("a_n_i_bridge1"))
 br.enabled = "bridge"
 br.rmempty = true
 
-stp = s:option(Flag, "stp", translate("a_n_i_stp"),
+stp = s:taboption("physical", Flag, "stp", translate("a_n_i_stp"),
 	translate("a_n_i_stp1", "Enables the Spanning Tree Protocol on this bridge"))
 stp:depends("type", "1")
 stp.rmempty = true
 
-ifname = s:option(Value, "ifname", translate("interface"))
-ifname.rmempty = true
-for i,d in ipairs(luci.sys.net.devices()) do
-	if d ~= "lo" then
-		ifname:value(d)
+ifname_single = s:taboption("physical", Value, "ifname_single", translate("interface"))
+ifname_single.template = "cbi/network_ifacelist"
+ifname_single.widget = "radio"
+ifname_single.nobridges = true
+ifname_single.rmempty = true
+ifname_single:depends("type", "")
+
+function ifname_single.cfgvalue(self, s)
+	return self.map.uci:get("network", s, "ifname")
+end
+
+function ifname_single.write(self, s, val)
+	local n = nw:get_network(s)
+	if n then n:ifname(val) end
+end
+
+
+ifname_multi = s:taboption("physical", MultiValue, "ifname_multi", translate("interface"))
+ifname_multi.template = "cbi/network_ifacelist"
+ifname_multi.nobridges = true
+ifname_multi.widget = "checkbox"
+ifname_multi:depends("type", "1")
+ifname_multi.cfgvalue = ifname_single.cfgvalue
+ifname_multi.write = ifname_single.write
+
+for _, d in ipairs(nw:get_interfaces()) do
+	if not d:is_bridge() then
+		ifname_single:value(d:name())
+		ifname_multi:value(d:name())
 	end
 end
 
-local zones = luci.tools.webadmin.network_get_zones(arg[1])
-if zones then
-	if #zones == 0 then
-		m:chain("firewall")
 
-		fwzone = s:option(Value, "_fwzone",
-			translate("network_interface_fwzone"),
-			translate("network_interface_fwzone_desc"))
-		fwzone.rmempty = true
-		fwzone:value("", "- " .. translate("none") .. " -")
-		fwzone:value(arg[1])
-		m.uci:load("firewall")
-		m.uci:foreach("firewall", "zone",
-			function (section)
-				fwzone:value(section.name)
-			end
-		)
+fwzone = s:taboption("general", Value, "_fwzone",
+	translate("network_interface_fwzone"),
+	translate("network_interface_fwzone_desc"))
 
-		function fwzone.write(self, section, value)
-			local zone = luci.tools.webadmin.firewall_find_zone(value)
-			local stat
+fwzone.template = "cbi/firewall_zonelist"
+fwzone.rmempty = false
 
-			if not zone then
-				stat = m.uci:section("firewall", "zone", nil, {
-					name = value,
-					network = section
-				})
-			else
-				local net = m.uci:get("firewall", zone, "network")
-				net = (net or value) .. " " .. section
-				stat = m.uci:set("firewall", zone, "network", net)
-			end
+function fwzone.cfgvalue(self, section)
+	self.iface = section
+	local z = fw:get_zone_by_network(section)
+	return z and z:name()
+end
 
-			if stat then
-				self.render = function() end
-			end
+function fwzone.write(self, section, value)
+	local zone = fw:get_zone(value)
+
+	if not zone and value == '-' then
+		value = m:formvalue(self:cbid(section) .. ".newzone")
+		if value and #value > 0 then
+			zone = fw:add_zone(value)
+		else
+			fw:del_network(section)
 		end
-	else
-		fwzone = s:option(DummyValue, "_fwzone", translate("zone"))
-		fwzone.value = table.concat(zones, ", ")
 	end
-	fwzone.titleref = luci.dispatcher.build_url("admin", "network", "firewall", "zones")
-	m.uci:unload("firewall")
+
+	if zone then
+		fw:del_network(section)
+		zone:add_network(section)
+	end
 end
 
-ipaddr = s:option(Value, "ipaddr", translate("ipaddress"))
+ipaddr = s:taboption("general", Value, "ipaddr", translate("ipaddress"))
 ipaddr.rmempty = true
 ipaddr:depends("proto", "static")
 
-nm = s:option(Value, "netmask", translate("netmask"))
+nm = s:taboption("general", Value, "netmask", translate("netmask"))
 nm.rmempty = true
 nm:depends("proto", "static")
 nm:value("255.255.255.0")
 nm:value("255.255.0.0")
 nm:value("255.0.0.0")
 
-gw = s:option(Value, "gateway", translate("gateway"))
+gw = s:taboption("general", Value, "gateway", translate("gateway"))
 gw:depends("proto", "static")
 gw.rmempty = true
 
-bcast = s:option(Value, "bcast", translate("broadcast"))
+bcast = s:taboption("general", Value, "bcast", translate("broadcast"))
 bcast:depends("proto", "static")
-bcast.optional = true
 
-ip6addr = s:option(Value, "ip6addr", translate("ip6address"), translate("cidr6"))
-ip6addr.optional = true
-ip6addr:depends("proto", "static")
+if has_ipv6 then
+	ip6addr = s:taboption("ipv6", Value, "ip6addr", translate("ip6address"), translate("cidr6"))
+	ip6addr:depends("proto", "static")
 
-ip6gw = s:option(Value, "ip6gw", translate("gateway6"))
-ip6gw:depends("proto", "static")
-ip6gw.optional = true
+	ip6gw = s:taboption("ipv6", Value, "ip6gw", translate("gateway6"))
+	ip6gw:depends("proto", "static")
+end
 
-dns = s:option(Value, "dns", translate("dnsserver"))
-dns.optional = true
+dns = s:taboption("general", Value, "dns", translate("dnsserver"))
+dns:depends("peerdns", "")
 
-mtu = s:option(Value, "mtu", "MTU")
-mtu.optional = true
+mtu = s:taboption("physical", Value, "mtu", "MTU")
 mtu.isinteger = true
 
-mac = s:option(Value, "macaddr", translate("macaddress"))
-mac.optional = true
+mac = s:taboption("physical", Value, "macaddr", translate("macaddress"))
 
 
-srv = s:option(Value, "server", translate("network_interface_server"))
+srv = s:taboption("general", Value, "server", translate("network_interface_server"))
 srv:depends("proto", "pptp")
 srv.rmempty = true
 
 if has_3g then
-	service = s:option(ListValue, "service", translate("network_interface_service"))
+	service = s:taboption("general", ListValue, "service", translate("network_interface_service"))
 	service:value("", translate("cbi_select"))
 	service:value("umts", "UMTS/GPRS")
 	service:value("cdma", "CDMA")
@@ -160,10 +183,10 @@ if has_3g then
 	service:depends("proto", "3g")
 	service.rmempty = true
 
-	apn = s:option(Value, "apn", translate("network_interface_apn"))
+	apn = s:taboption("general", Value, "apn", translate("network_interface_apn"))
 	apn:depends("proto", "3g")
 
-	pincode = s:option(Value, "pincode",
+	pincode = s:taboption("general", Value, "pincode",
 	 translate("network_interface_pincode"),
 	 translate("network_interface_pincode_desc")
 	)
@@ -171,7 +194,7 @@ if has_3g then
 end
 
 if has_pppd or has_pppoe or has_pppoa or has_3g or has_pptp then
-	user = s:option(Value, "username", translate("username"))
+	user = s:taboption("general", Value, "username", translate("username"))
 	user.rmempty = true
 	user:depends("proto", "pptp")
 	user:depends("proto", "pppoe")
@@ -179,7 +202,7 @@ if has_pppd or has_pppoe or has_pppoa or has_3g or has_pptp then
 	user:depends("proto", "ppp")
 	user:depends("proto", "3g")
 
-	pass = s:option(Value, "password", translate("password"))
+	pass = s:taboption("general", Value, "password", translate("password"))
 	pass.rmempty = true
 	pass.password = true
 	pass:depends("proto", "pptp")
@@ -188,22 +211,20 @@ if has_pppd or has_pppoe or has_pppoa or has_3g or has_pptp then
 	pass:depends("proto", "ppp")
 	pass:depends("proto", "3g")
 
-	ka = s:option(Value, "keepalive",
+	ka = s:taboption("ppp", Value, "keepalive",
 	 translate("network_interface_keepalive"),
 	 translate("network_interface_keepalive_desc")
 	)
-	ka.optional = true
 	ka:depends("proto", "pptp")
 	ka:depends("proto", "pppoe")
 	ka:depends("proto", "pppoa")
 	ka:depends("proto", "ppp")
 	ka:depends("proto", "3g")
 
-	demand = s:option(Value, "demand",
+	demand = s:taboption("ppp", Value, "demand",
 	 translate("network_interface_demand"),
 	 translate("network_interface_demand_desc")
 	)
-	demand.optional = true
 	demand:depends("proto", "pptp")
 	demand:depends("proto", "pppoe")
 	demand:depends("proto", "pppoa")
@@ -212,31 +233,28 @@ if has_pppd or has_pppoe or has_pppoa or has_3g or has_pptp then
 end
 
 if has_pppoa then
-	encaps = s:option(ListValue, "encaps", translate("network_interface_encaps"))
-	encaps.optional = false
+	encaps = s:taboption("ppp", ListValue, "encaps", translate("network_interface_encaps"))
 	encaps:depends("proto", "pppoa")
 	encaps:value("", translate("cbi_select"))
 	encaps:value("vc", "VC")
 	encaps:value("llc", "LLC")
 
-	vpi = s:option(Value, "vpi", "VPI")
-	vpi.optional = false
+	vpi = s:taboption("ppp", Value, "vpi", "VPI")
 	vpi:depends("proto", "pppoa")
 
-	vci = s:option(Value, "vci", "VCI")
-	vci.optional = false
+	vci = s:taboption("ppp", Value, "vci", "VCI")
 	vci:depends("proto", "pppoa")
 end
 
 if has_pptp or has_pppd or has_pppoe or has_pppoa or has_3g then
-	device = s:option(Value, "device",
+	device = s:taboption("general", Value, "device",
 	 translate("network_interface_device"),
 	 translate("network_interface_device_desc")
 	)
 	device:depends("proto", "ppp")
 	device:depends("proto", "3g")
 
-	defaultroute = s:option(Flag, "defaultroute",
+	defaultroute = s:taboption("ppp", Flag, "defaultroute",
 	 translate("network_interface_defaultroute"),
 	 translate("network_interface_defaultroute_desc")
 	)
@@ -250,7 +268,7 @@ if has_pptp or has_pppd or has_pppoe or has_pppoa or has_3g then
 		return ( AbstractValue.cfgvalue(...) or '1' )
 	end
 
-	peerdns = s:option(Flag, "peerdns",
+	peerdns = s:taboption("ppp", Flag, "peerdns",
 	 translate("network_interface_peerdns"),
 	 translate("network_interface_peerdns_desc")
 	)
@@ -264,51 +282,49 @@ if has_pptp or has_pppd or has_pppoe or has_pppoa or has_3g then
 		return ( AbstractValue.cfgvalue(...) or '1' )
 	end
 
-	ipv6 = s:option(Flag, "ipv6", translate("network_interface_ipv6") )
-	ipv6:depends("proto", "ppp")
-	ipv6:depends("proto", "pppoa")
-	ipv6:depends("proto", "pppoe")
-	ipv6:depends("proto", "pptp")
-	ipv6:depends("proto", "3g")
+	if has_ipv6 then
+		ipv6 = s:taboption("ppp", Flag, "ipv6", translate("network_interface_ipv6") )
+		ipv6:depends("proto", "ppp")
+		ipv6:depends("proto", "pppoa")
+		ipv6:depends("proto", "pppoe")
+		ipv6:depends("proto", "pptp")
+		ipv6:depends("proto", "3g")
+	end
 
-	connect = s:option(Value, "connect",
+	connect = s:taboption("ppp", Value, "connect",
 	 translate("network_interface_connect"),
 	 translate("network_interface_connect_desc")
 	)
-	connect.optional = true
 	connect:depends("proto", "ppp")
 	connect:depends("proto", "pppoe")
 	connect:depends("proto", "pppoa")
 	connect:depends("proto", "pptp")
 	connect:depends("proto", "3g")
 
-	disconnect = s:option(Value, "disconnect",
+	disconnect = s:taboption("ppp", Value, "disconnect",
 	 translate("network_interface_disconnect"),
 	 translate("network_interface_disconnect_desc")
 	)
-	disconnect.optional = true
 	disconnect:depends("proto", "ppp")
 	disconnect:depends("proto", "pppoe")
 	disconnect:depends("proto", "pppoa")
 	disconnect:depends("proto", "pptp")
 	disconnect:depends("proto", "3g")
 
-	pppd_options = s:option(Value, "pppd_options",
+	pppd_options = s:taboption("ppp", Value, "pppd_options",
 	 translate("network_interface_pppd_options"),
 	 translate("network_interface_pppd_options_desc")
 	)
-	pppd_options.optional = true
 	pppd_options:depends("proto", "ppp")
 	pppd_options:depends("proto", "pppoa")
 	pppd_options:depends("proto", "pppoe")
 	pppd_options:depends("proto", "pptp")
 	pppd_options:depends("proto", "3g")
 
-	maxwait = s:option(Value, "maxwait",
+	maxwait = s:taboption("ppp", Value, "maxwait",
 	 translate("network_interface_maxwait"),
 	 translate("network_interface_maxwait_desc")
 	)
-	maxwait.optional = true
 	maxwait:depends("proto", "3g")
 end
 
@@ -318,31 +334,26 @@ s2.addremove = true
 s2:depends("interface", arg[1])
 s2.defaults.interface = arg[1]
 
+s2:tab("general", translate("a_n_general", "General Setup"))
 
 s2.defaults.proto = "static"
 
-ipaddr = s2:option(Value, "ipaddr", translate("ipaddress"))
-ipaddr.rmempty = true
+s2:taboption("general", Value, "ipaddr", translate("ipaddress")).rmempty = true
 
-nm = s2:option(Value, "netmask", translate("netmask"))
+nm = s2:taboption("general", Value, "netmask", translate("netmask"))
 nm.rmempty = true
 nm:value("255.255.255.0")
 nm:value("255.255.0.0")
 nm:value("255.0.0.0")
 
-gw = s2:option(Value, "gateway", translate("gateway"))
-gw.rmempty = true
+s2:taboption("general", Value, "gateway", translate("gateway")).rmempty = true
+s2:taboption("general", Value, "bcast", translate("broadcast"))
+s2:taboption("general", Value, "dns", translate("dnsserver"))
 
-bcast = s2:option(Value, "bcast", translate("broadcast"))
-bcast.optional = true
-
-ip6addr = s2:option(Value, "ip6addr", translate("ip6address"), translate("cidr6"))
-ip6addr.optional = true
-
-ip6gw = s2:option(Value, "ip6gw", translate("gateway6"))
-ip6gw.optional = true
-
-dns = s2:option(Value, "dns", translate("dnsserver"))
-dns.optional = true
+if has_ipv6 then
+	s2:tab("ipv6", translate("a_n_ipv6", "IPv6 Setup"))
+	s2:taboption("ipv6", Value, "ip6addr", translate("ip6address"), translate("cidr6"))
+	s2:taboption("ipv6", Value, "ip6gw", translate("gateway6"))
+end
 
 return m

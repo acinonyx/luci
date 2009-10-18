@@ -132,7 +132,7 @@ msgstr ""
 msgid "ff_splash_timeleft"
 msgstr ""
 
-#. Outgoing traffic
+#. Traffic (in/out)
 msgid "ff_splash_traffic"
 msgstr ""
 
@@ -202,4 +202,40 @@ msgstr ""
 
 #. IP-P2P
 msgid "ff_p2pblock_ipp2p"
+msgstr ""
+
+#. Freifunk Remote Update
+msgid "ff_remote_update"
+msgstr ""
+
+#. Check for new firmware versions and perform automatic updates.
+msgid "ff_remote_update_desc"
+msgstr ""
+
+#. Update available!
+msgid "ff_remote_update_available"
+msgstr ""
+
+#. The installed firmware is the most recent version.
+msgid "ff_remote_update_uptodate"
+msgstr ""
+
+#. Start Upgrade
+msgid "ff_remote_update_install"
+msgstr ""
+
+#. Update Settings
+msgid "ff_remote_update_settings"
+msgstr ""
+
+#. Keep configuration
+msgid "ff_remote_update_keepcfg"
+msgstr ""
+
+#. Verify downloaded images
+msgid "ff_remote_update_verify"
+msgstr ""
+
+#. Confirm Upgrade
+msgid "ff_remote_update_confirm"
 msgstr ""

@@ -10,18 +10,13 @@ config DirectoryPublisher webroot
 	option physical host/www
 	option virtual ''
 	option domain ''
-	list read ':lo'
-	list read ':br-lan'
-	list read 'root'
 	
 config LuciWebPublisher luciweb
 	option name 'LuCI Webapplication'
 	option physical ''
 	list virtual /luci
 	option domain ''
-	list exec ':lo'
-	list exec ':br-lan'
-	list exec 'root'
+	option home 1
 	
 config RPCPublisher	mainrpc
 	option namespace 'luci.lucid.rpc'
@@ -53,7 +48,14 @@ config daemon https
 	list publisher luciweb
 	option enabled 1
 	option encryption enable
+	option tls sdk_tls
 	
+config tls sdk_tls
+	option generate 1
+	option key /tmp/lucid-tls.key
+	option cert /tmp/lucid-tls.cert
+	option type asn1
+
 config daemon rpc
 	option slave rpcd
 	list address 12900
@@ -71,4 +73,3 @@ config 'Redirector' 'splashredir'
         option 'virtual' '/'
         option 'physical' ':80/luci/splash'
 
-	

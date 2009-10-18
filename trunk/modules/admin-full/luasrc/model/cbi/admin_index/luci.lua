@@ -15,6 +15,8 @@ require("luci.config")
 m = Map("luci", translate("webui"), translate("a_i_luci1",
  "Hier können Eigenschaften und die Funktionalität der Oberfläche angepasst werden."))
 
+local fs = require "nixio.fs"
+
 -- force reload of global luci config namespace to reflect the changes
 function m.commit_handler(self)
 	package.loaded["luci.config"] = nil
@@ -30,10 +32,7 @@ l:value("auto")
 local i18ndir = luci.i18n.i18ndir .. "default."
 for k, v in luci.util.kspairs(luci.config.languages) do
 	local file = i18ndir .. k:gsub("_", "-")
-	if k:sub(1, 1) ~= "." and (
-		luci.fs.access(file .. ".lua") or
-		luci.fs.access(file .. ".lua.gz")
-	) then
+	if k:sub(1, 1) ~= "." and fs.access(file .. ".lmo") then
 		l:value(k, v)
 	end
 end

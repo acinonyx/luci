@@ -30,9 +30,10 @@ require("luci.template")
 local util = require("luci.util")
 require("luci.http")
 require("luci.uvl")
-require("luci.fs")
+
 
 --local event      = require "luci.sys.event"
+local fs         = require("nixio.fs")
 local uci        = require("luci.model.uci")
 local class      = util.class
 local instanceof = util.instanceof
@@ -52,24 +53,25 @@ REMOVE_PREFIX = "cbi.rts."
 
 -- Loads a CBI map from given file, creating an environment and returns it
 function load(cbimap, ...)
-	require("luci.fs")
+	local fs   = require "nixio.fs"
 	local i18n = require "luci.i18n"
 	require("luci.config")
 	require("luci.util")
 
 	local upldir = "/lib/uci/upload/"
 	local cbidir = luci.util.libpath() .. "/model/cbi/"
+	local func, err
 
-	assert(luci.fs.stat(cbimap) or
-		luci.fs.stat(cbidir..cbimap..".lua") or
-		luci.fs.stat(cbidir..cbimap..".lua.gz"),
-			"Model not found!")
-
-	local func, err = loadfile(cbimap)
-	if not func then
-		func, err = loadfile(cbidir..cbimap..".lua") or
-			loadfile(cbidir..cbimap..".lua.gz")
+	if fs.access(cbimap) then
+		func, err = loadfile(cbimap)
+	elseif fs.access(cbidir..cbimap..".lua") then
+		func, err = loadfile(cbidir..cbimap..".lua")
+	elseif fs.access(cbidir..cbimap..".lua.gz") then
+		func, err = loadfile(cbidir..cbimap..".lua.gz")
+	else
+		func, err = nil, "Model '" .. cbimap .. "' not found!"
 	end
+
 	assert(func, err)
 
 	luci.i18n.loadc("cbi")
@@ -285,6 +287,11 @@ function Template.render(self)
 	luci.template.render(self.template, {self=self})
 end
 
+function Template.parse(self, readinput)
+	self.readinput = (readinput ~= false)
+	return Map.formvalue(self, "cbi.submit") and FORM_DONE or FORM_NODATA
+end
+
 
 --[[
 Map - A map describing a configuration file
@@ -362,7 +369,7 @@ function Map.parse(self, readinput, ...)
 		for i, config in ipairs(self.parsechain) do
 			self.uci:save(config)
 		end
-		if self:submitstate() and not self.proceed and (self.flow.autoapply or luci.http.formvalue("cbi.apply")) then
+		if self:submitstate() and ((not self.proceed and self.flow.autoapply) or luci.http.formvalue("cbi.apply")) then
 			for i, config in ipairs(self.parsechain) do
 				self.uci:commit(config)
 
@@ -498,6 +505,7 @@ function Delegator.__init__(self, ...)
 	self.defaultpath = {}
 	self.pageaction = false
 	self.readinput = true
+	self.allow_reset = false
 	self.allow_back = false
 	self.allow_finish = false
 	self.template = "cbi/delegator"
@@ -571,9 +579,14 @@ function Delegator.parse(self, ...)
 		else
 			newcurrent = self:get_next(self.current)
 		end
+	elseif stat < FORM_PROCEED then
+		return stat
 	end
+	
 
-	if not newcurrent or not self:get(newcurrent) then
+	if not Map.formvalue(self, "cbi.submit") then
+		return FORM_NODATA
+	elseif not newcurrent or not self:get(newcurrent) then
 		return FORM_DONE
 	else
 		self.current = newcurrent
@@ -880,7 +893,7 @@ function AbstractSection.create(self, section)
 	local stat
 
 	if section then
-		stat = section:match("^%w+$") and self.map:set(section, nil, self.sectiontype)
+		stat = section:match("^[%w_]+$") and self.map:set(section, nil, self.sectiontype)
 	else
 		section = self.map:add(self.sectiontype)
 		stat = section
@@ -1278,6 +1291,22 @@ end
 function AbstractValue.parse(self, section, novld)
 	local fvalue = self:formvalue(section)
 	local cvalue = self:cfgvalue(section)
+
+	-- If favlue and cvalue are both tables and have the same content
+	-- make them identical
+	if type(fvalue) == "table" and type(cvalue) == "table" then
+		local equal = #fvalue == #cvalue
+		if equal then
+			for i=1, #fvalue do
+				if cvalue[i] ~= fvalue[i] then
+					equal = false
+				end
+			end
+		end
+		if equal then
+			fvalue = cvalue
+		end
+	end
 
 	if fvalue and #fvalue > 0 then -- If we have a form value, write it to UCI
 		fvalue = self:transform(self:validate(fvalue, section))
@@ -1703,7 +1732,7 @@ end
 
 function FileUpload.cfgvalue(self, section)
 	local val = AbstractValue.cfgvalue(self, section)
-	if val and luci.fs.access(val) then
+	if val and fs.access(val) then
 		return val
 	end
 	return nil
@@ -1717,7 +1746,7 @@ function FileUpload.formvalue(self, section)
 		then
 			return val
 		end
-		luci.fs.unlink(val)
+		fs.unlink(val)
 		self.value = nil
 	end
 	return nil
@@ -1725,7 +1754,7 @@ end
 
 function FileUpload.remove(self, section)
 	local val = AbstractValue.formvalue(self, section)
-	if val and luci.fs.access(val) then luci.fs.unlink(val) end
+	if val and fs.access(val) then fs.unlink(val) end
 	return AbstractValue.remove(self, section)
 end
 
