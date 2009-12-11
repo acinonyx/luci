@@ -257,14 +257,14 @@ static int nixio_utimes(lua_State *L) {
 	if (lua_gettop(L) < 2 || (lua_isnoneornil(L, 2) && lua_isnoneornil(L, 3))) {
 		return nixio__pstatus(L, !utimes(path, NULL));
 	} else {
-		double atime = luaL_checknumber(L, 2);
-		double mtime = luaL_optnumber(L, 3, atime);
+		double atime = nixio__checknumber(L, 2);
+		double mtime = nixio__optnumber(L, 3, atime);
 		struct timeval times[2];
 
 		times[0].tv_sec = atime;
-		times[0].tv_usec = (long)((atime - (int64_t)atime) * 1000000);
+		times[0].tv_usec = 0;
 		times[1].tv_sec = mtime;
-		times[1].tv_usec = (long)((mtime - (int64_t)mtime) * 1000000);
+		times[1].tv_usec = 0;
 
 		return nixio__pstatus(L, !utimes(path, times));
 	}
@@ -317,7 +317,7 @@ int nixio__push_stat(lua_State *L, nixio_stat_t *buf) {
 	lua_pushinteger(L, buf->st_rdev);
 	lua_setfield(L, -2, "rdev");
 
-	lua_pushnumber(L, buf->st_size);
+	nixio__pushnumber(L, buf->st_size);
 	lua_setfield(L, -2, "size");
 
 	lua_pushinteger(L, buf->st_atime);
@@ -469,37 +469,37 @@ static int nixio_glob(lua_State *L) {
 static int nixio__push_statvfs(lua_State *L, struct statvfs *buf) {
 	lua_createtable(L, 0, 12);
 
-	lua_pushnumber(L, buf->f_bavail);
+	nixio__pushnumber(L, buf->f_bavail);
 	lua_setfield(L, -2, "bavail");
 
-	lua_pushnumber(L, buf->f_bfree);
+	nixio__pushnumber(L, buf->f_bfree);
 	lua_setfield(L, -2, "bfree");
 
-	lua_pushnumber(L, buf->f_blocks);
+	nixio__pushnumber(L, buf->f_blocks);
 	lua_setfield(L, -2, "blocks");
 
-	lua_pushnumber(L, buf->f_bsize);
+	nixio__pushnumber(L, buf->f_bsize);
 	lua_setfield(L, -2, "bsize");
 
-	lua_pushnumber(L, buf->f_frsize);
+	nixio__pushnumber(L, buf->f_frsize);
 	lua_setfield(L, -2, "frsize");
 
-	lua_pushnumber(L, buf->f_favail);
+	nixio__pushnumber(L, buf->f_favail);
 	lua_setfield(L, -2, "favail");
 
-	lua_pushnumber(L, buf->f_ffree);
+	nixio__pushnumber(L, buf->f_ffree);
 	lua_setfield(L, -2, "ffree");
 
-	lua_pushnumber(L, buf->f_files);
+	nixio__pushnumber(L, buf->f_files);
 	lua_setfield(L, -2, "files");
 
-	lua_pushnumber(L, buf->f_flag);
+	nixio__pushnumber(L, buf->f_flag);
 	lua_setfield(L, -2, "flag");
 
-	lua_pushnumber(L, buf->f_fsid);
+	nixio__pushnumber(L, buf->f_fsid);
 	lua_setfield(L, -2, "fsid");
 
-	lua_pushnumber(L, buf->f_namemax);
+	nixio__pushnumber(L, buf->f_namemax);
 	lua_setfield(L, -2, "namemax");
 
 	return 1;

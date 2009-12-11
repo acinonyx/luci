@@ -1,4 +1,4 @@
-<%#
+a<%#
 LuCI - Lua Configuration Interface
 Copyright 2008 Steven Barth <steven@midlink.org>
 Copyright 2008 Jo-Philipp Wich <xm@leipzig.freifunk.net>
@@ -31,7 +31,7 @@ for i,r in ipairs(request) do
 	end
 end
 
-require("luci.i18n").loadc("default")
+require("luci.i18n").loadc("base")
 require("luci.http").prepare_content("application/xhtml+xml")
 
 -%>
@@ -56,21 +56,21 @@ require("luci.http").prepare_content("application/xhtml+xml")
 <body class="lang_<%=luci.i18n.context.lang%>">
 
 <p class="skiplink">
-<span id="skiplink1"><a href="#navigation"><%:skiplink1 Skip to navigation%></a></span>
-<span id="skiplink2"><a href="#content"><%:skiplink2 Skip to content%></a></span>
+<span id="skiplink1"><a href="#navigation"><%:Skip to navigation%></a></span>
+<span id="skiplink2"><a href="#content"><%:Skip to content%></a></span>
 </p>
 
 <div id="header">
 <h1><%=luci.version.distname%></h1>
 <p>
 <%=luci.version.distversion%><br />
-<%:load%>: <%="%.2f" % load1%> <%="%.2f" % load5%> <%="%.2f" % load15%><br />
-<%:hostname%>: <%=hostname%>
+<%:Load%>: <%="%.2f" % load1%> <%="%.2f" % load5%> <%="%.2f" % load15%><br />
+<%:Hostname%>: <%=hostname%>
 </p>
 </div>
 
 <div id="menubar">
-<h2 class="navigation"><a id="navigation" name="navigation"><%:navigation Navigation%></a></h2>
+<h2 class="navigation"><a id="navigation" name="navigation"><%:Navigation%></a></h2>
 <ul id="mainmenu" class="dropdowns">
 <%-
 local function submenu(prefix, node)
@@ -98,7 +98,7 @@ local function submenu(prefix, node)
 				local href = controller .. prefix .. v.name .. "/"
 				href = (nnode.query) and href .. luci.http.build_querystring(nnode.query) or href
 %>
-<li><a<% if nnode._menu_selected then %> class="active"<%end%> href="<%=luci.util.pcdata(href)%>"><%=nnode.title%></a><%-
+<li><a<% if nnode._menu_selected then %> class="active"<%end%> href="<%=pcdata(href)%>"><%=pcdata(striptags(nnode.title))%></a><%-
 submenu(prefix .. v.name .. "/", nnode)
 %></li>
 <%-
@@ -124,7 +124,7 @@ if cattree and cattree.nodes then
 			local href = controller.."/"..category.."/"..k.name.."/"
 			href = (k.query) and href .. luci.http.build_querystring(k.query) or href
 %>
-<li><a<% if node._menu_selected then %> class="preactive"<%end%> href="<%=href%>"><%=node.title%></a><%
+<li><a<% if node._menu_selected then %> class="preactive"<%end%> href="<%=pcdata(href)%>"><%=pcdata(striptags(node.title))%></a><%
 submenu("/" .. category .. "/" .. k.name .. "/", node)
 %></li><% end
 	end
@@ -135,7 +135,7 @@ end
 <ul id="modemenu"><%
 for k,node in pairs(tree.nodes) do
 	if node.title and not node.hidden then %>
-<li><a<% if request[1] == k then %> class="active"<%end%> href="<%=controller%>/<%=k%>/"><%=node.title%></a></li><%
+<li><a<% if request[1] == k then %> class="active"<%end%> href="<%=controller%>/<%=k%>/"><%=pcdata(striptags(node.title))%></a></li><%
 	end
 end
 %>
@@ -153,10 +153,10 @@ if tree.nodes[category] and tree.nodes[category].ucidata then
 	end
 -%>
 <ul id="savemenu" class="dropdowns">
-<li><% if ucic > 0 then %><a class="warning" href="<%=controller%>/<%=category%>/uci/changes/"><%:unsavedchanges%>: <%=ucic%></a><%
+<li><% if ucic > 0 then %><a class="warning" href="<%=controller%>/<%=category%>/uci/changes/"><%:Unsaved Changes%>: <%=ucic%></a><%
 submenu("/" .. category .. "/uci/", tree.nodes[category].nodes["uci"])
 else -%>
-<a href="#"><%:changes%>: 0</a><% end -%>
+<a href="#"><%:Changes%>: 0</a><% end -%>
 </li>
 </ul><% end %>
 

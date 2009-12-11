@@ -14,30 +14,32 @@ msgstr ""
 
 #. Initscripts
 #: applications/luci-initmgr/luasrc/i18n/initmgr.en.lua:1
-msgid "initmgr"
+msgid "Initscripts"
 msgstr "Σενάρια Εκκίνησης"
 
-#. You can enable or disable installed init scripts here. Changes will applied after a device reboot.<br /><strong>Warning: If you disable essential init scripts like &quot;network&quot;, your device might become inaccesable!</strong>
+#. You can enable or disable installed init scripts here. Changes will applied after a device reboot.<br /><strong>Warning: If you disable essential init scripts like \"network\", your device might become inaccesable!</strong>
 #: applications/luci-initmgr/luasrc/i18n/initmgr.en.lua:2
-msgid "initmgr_desc"
+msgid ""
+"You can enable or disable installed init scripts here. Changes will applied "
+"after a device reboot.<br /><strong>Warning: If you disable essential init "
+"scripts like \"network\", your device might become inaccesable!</strong>"
 msgstr ""
 "Μπορείτε να ενεργοποιήσετε ή να απενεργοποιήσετε σενάρια εκκίνησης εδώ. Οι "
-"αλλαγές θα εφαρμοστούν αφού επανεκκινήσετε τη συσκευή.<br "
-"/><strong>Προειδοποίηση: Αν απενεργοποιήσετε απαραίτητα σενάρια εκκίνησης "
-"όπως το &quot;network&quot;, η συσκευή σας μπορεί να γίνει "
-"μη-προσβάσιμη!</strong>"
+"αλλαγές θα εφαρμοστούν αφού επανεκκινήσετε τη συσκευή.<br /"
+"><strong>Προειδοποίηση: Αν απενεργοποιήσετε απαραίτητα σενάρια εκκίνησης "
+"όπως το \"network\", η συσκευή σας μπορεί να γίνει μη-προσβάσιμη!</strong>"
 
 #. Start priority
 #: applications/luci-initmgr/luasrc/i18n/initmgr.en.lua:3
-msgid "initmgr_index"
+msgid "Start priority"
 msgstr "Προτεραιότητα εκκίνησης"
 
 #. Initscript
 #: applications/luci-initmgr/luasrc/i18n/initmgr.en.lua:4
-msgid "initmgr_name"
+msgid "Initscript"
 msgstr "Σενάριο εκκίνησης"
 
 #. Enable/Disable
 #: applications/luci-initmgr/luasrc/i18n/initmgr.en.lua:5
-msgid "initmgr_enabled"
+msgid "Enable/Disable"
 msgstr "Ενεργοποίηση/Απενεργοποίηση"

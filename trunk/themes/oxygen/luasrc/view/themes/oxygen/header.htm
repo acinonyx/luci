@@ -1,4 +1,4 @@
-<%#
+a<%#
 LuCI - Lua Configuration Interface
 Copyright 2008 Steven Barth <steven@midlink.org>
 Copyright 2008 Jo-Philipp Wich <xm@leipzig.freifunk.net>
@@ -29,7 +29,7 @@ for i,r in ipairs(request) do
 	end
 end
 
-require("luci.i18n").loadc("default")
+require("luci.i18n").loadc("base")
 require("luci.http").prepare_content("application/xhtml+xml")
 
 -%>
@@ -50,8 +50,8 @@ require("luci.http").prepare_content("application/xhtml+xml")
 <div id="screen">
 
 <p class="skiplink">
-<span id="skiplink1"><a href="#navigation"><%:skiplink1 Skip to navigation%></a></span>
-<span id="skiplink2"><a href="#content"><%:skiplink2 Skip to content%></a></span>
+<span id="skiplink1"><a href="#navigation"><%:Skip to navigation%></a></span>
+<span id="skiplink2"><a href="#content"><%:Skip to content%></a></span>
 </p>
 
 <%-
@@ -77,7 +77,7 @@ local function ucimenu(prefix, node)
 				local href = controller .. prefix .. v.name .. "/"
 				href = (nnode.query) and href .. luci.http.build_querystring(nnode.query) or href
 %>
-<span><a class="menulink<% if nnode._menu_selected then %> active<%end%>" href="<%=luci.util.pcdata(href)%>"> &gt; <%=nnode.title%></a></span>
+<span><a class="menulink<% if nnode._menu_selected then %> active<%end%>" href="<%=pcdata(href)%>"> &gt; <%=pcdata(striptags(nnode.title))%></a></span>
 <%-
 			end
 		end
@@ -101,7 +101,7 @@ if tree.nodes[category] and tree.nodes[category].ucidata then
 		end
 	end
 -%>
-<% if ucic > 0 then %><div class="menubar"><div><a class="warning" href="<%=controller%>/<%=category%>/uci/changes/"><%:unsavedchanges%>: <%=ucic%></a><%
+<% if ucic > 0 then %><div class="menubar"><div><a class="warning" href="<%=controller%>/<%=category%>/uci/changes/"><%:Unsaved Changes%>: <%=ucic%></a><%
 ucimenu("/" .. category .. "/uci/", tree.nodes[category].nodes["uci"], "changes")-%>
 <div class="clear"></div>
 </div></div>
@@ -109,8 +109,8 @@ ucimenu("/" .. category .. "/uci/", tree.nodes[category].nodes["uci"], "changes"
 <% end %>
 
 <div class="menubar">
-<h2 class="navigation"><a id="navigation" name="navigation"><%:navigation Navigation%></a></h2>
-<strong><%:path%>:</strong>
+<h2 class="navigation"><a id="navigation" name="navigation"><%:Navigation%></a></h2>
+<strong><%:Path%>:</strong>
 <a href="<%=controller%>"><%= luci.__appname__ %></a>
 
 <%
@@ -119,7 +119,7 @@ ucimenu("/" .. category .. "/uci/", tree.nodes[category].nodes["uci"], "changes"
 		if pointer.nodes and pointer.nodes[v] then
 			pointer = pointer.nodes[v]
 			%>
-			&#187; <a href="<%=luci.dispatcher.build_url(unpack(crequest, 1, k))%>"><%=pointer.title or v%></a>
+			&#187; <a href="<%=luci.dispatcher.build_url(unpack(crequest, 1, k))%>"><%=pcdata(striptags(pointer.title or v))%></a>
 			<%
 		end
 	end

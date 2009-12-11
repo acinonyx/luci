@@ -34,6 +34,9 @@ local nixio = require "nixio", require "nixio.util"
 
 module("luci.dispatcher", package.seeall)
 context = util.threadlocal()
+uci = require "luci.model.uci"
+i18n = require "luci.i18n"
+_M.fs = fs
 
 authenticator = {}
 
@@ -235,6 +238,7 @@ function dispatch(request)
 		   include     = function(name) tpl.Template(name):render(getfenv(2)) end;
 		   translate   = function(...) return require("luci.i18n").translate(...) end;
 		   striptags   = util.striptags;
+		   pcdata      = util.pcdata;
 		   media       = media;
 		   theme       = fs.basename(media);
 		   resource    = luci.config.main.resourcebase
@@ -474,7 +478,7 @@ function createtree()
 	ctx.modifiers = modi
 
 	-- Load default translation
-	require "luci.i18n".loadc("default")
+	require "luci.i18n".loadc("base")
 
 	local scope = setmetatable({}, {__index = luci.dispatcher})
 
