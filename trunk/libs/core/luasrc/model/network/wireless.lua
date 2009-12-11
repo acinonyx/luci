@@ -44,11 +44,11 @@ function init(self, cursor)
 
 			local device = s.device or "wlan0"
 			local state = st:get_all("wireless", s['.name'])
-			local name = state.ifname or device .. ".network" .. count
+			local name = device .. ".network" .. count
 			
-			ifs[state and state.ifname or name] = {
+			ifs[name] = {
 				idx      = count,
-				name     = state and state.ifname or name,
+				name     = name,
 				rawname  = state and state.ifname or name,
 				flags    = { },
 				ipaddrs  = { },
@@ -63,11 +63,24 @@ function init(self, cursor)
 		end)
 end
 
+local function _mode(m)
+	if     m == "ap"      then m = "AP"
+	elseif m == "sta"     then m = "Client"
+	elseif m == "adhoc"   then m = "Ad-Hoc"
+	elseif m == "mesh"    then m = "Mesh"
+	elseif m == "monitor" then m = "Monitor"
+	elseif m == "wds"     then m = "WDS"
+	end
+
+	return m or "Client"
+end
+
 function shortname(self, iface)
 	if iface.dev and iface.dev.wifi then
 		return "%s %q" %{
-			i18n.translate("a_s_if_iwmode_" .. (iface.dev.wifi.mode or "ap")), 
-			iface.dev.wifi.ssid or iface.dev.wifi.bssid or "(hidden)"
+			i18n.translate(_mode(iface.dev.wifi.mode)),
+			iface.dev.wifi.ssid or iface.dev.wifi.bssid
+				or i18n.translate("(hidden)")
 		}
 	else
 		return iface:name()
@@ -77,12 +90,13 @@ end
 function get_i18n(self, iface)
 	if iface.dev and iface.dev.wifi then
 		return "%s: %s %q" %{
-			i18n.translate("a_s_if_wifinet", "Wireless Network"),
-			i18n.translate("a_s_if_iwmode_" .. (iface.dev.wifi.mode or "ap"), iface.dev.wifi.mode or "AP"),
-			iface.dev.wifi.ssid or iface.dev.wifi.bssid or "(hidden)"
+			i18n.translate("Wireless Network"),
+			i18n.translate(_mode(iface.dev.wifi.mode)),
+			iface.dev.wifi.ssid or iface.dev.wifi.bssid
+				or i18n.translate("(hidden)")
 		}
 	else
-		return "%s: %q" %{ i18n.translate("a_s_if_wifinet", "Wireless Network"), iface:name() }
+		return "%s: %q" %{ i18n.translate("Wireless Network"), iface:name() }
 	end
 end
 

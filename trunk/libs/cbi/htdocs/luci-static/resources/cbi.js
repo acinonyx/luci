@@ -45,7 +45,18 @@ function cbi_d_checkvalue(target, ref) {
 	var t = document.getElementById(target);
 	var value;
 
-	if (!t || !t.value) {
+	if (!t) {
+		var tl = document.getElementsByName(target);
+
+		if( tl.length > 0 && tl[0].type == 'radio' )
+			for( var i = 0; i < tl.length; i++ )
+				if( tl[i].checked ) {
+					value = tl[i].value;
+					break;
+				}
+
+		value = value ? value : "";
+	} else if (!t.value) {
 		value = "";
 	} else {
 		value = t.value;
@@ -59,15 +70,26 @@ function cbi_d_checkvalue(target, ref) {
 }
 
 function cbi_d_check(deps) {
+	var reverse;
+	var def = false;
 	for (var i=0; i<deps.length; i++) {
-		var istat = true
+		var istat = true;
+		reverse = false;
 		for (var j in deps[i]) {
-			istat = (istat && cbi_d_checkvalue(j, deps[i][j]))
+			if (j == "!reverse") {
+				reverse = true;
+			} else if (j == "!default") {
+				def = true;
+				istat = false;
+			} else {
+				istat = (istat && cbi_d_checkvalue(j, deps[i][j]))
+			}
 		}
 		if (istat) {
-			return true
+			return !reverse;
 		}
 	}
+	return def;
 }
 
 function cbi_d_update() {
@@ -80,7 +102,7 @@ function cbi_d_update() {
 
 		if (node && node.parentNode && !cbi_d_check(entry.deps)) {
 			node.parentNode.removeChild(node);
-			state = (state || !node.parentNode);
+			state = true;
 			if( entry.parent )
 				cbi_c[entry.parent]--;
 		} else if ((!node || !node.parentNode) && cbi_d_check(entry.deps)) {
@@ -89,7 +111,7 @@ function cbi_d_update() {
 			} else {
 				next.parentNode.insertBefore(entry.node, next);
 			}
-			state = (state || (node && node.parentNode))
+			state = true;
 			if( entry.parent )
 				cbi_c[entry.parent]++;
 		}

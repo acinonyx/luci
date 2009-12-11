@@ -108,36 +108,50 @@ int main(int argc, char *argv[])
 				case -1:
 					die("Syntax error in msgid");
 				case 0:
-					continue;
-				default:
 					state = 1;
-			}
-		}
-		else if( state == 1 && strstr(line, "msgstr \"") == line )
-		{
-			switch(extract_string(line, val, sizeof(val)))
-			{
-				case -1:
-					die("Syntax error in msgstr");
-				case 0:
-					state = 2;
 					break;
 				default:
-					state = 3;
+					state = 2;
 			}
 		}
-		else if( state == 2 )
+		else if( state == 1 || state == 2 )
+		{
+			if( strstr(line, "msgstr \"") == line || state == 2 )
+			{
+				switch(extract_string(line, val, sizeof(val)))
+				{
+					case -1:
+						state = 4;
+						break;
+					default:
+						state = 3;
+				}
+			}
+			else
+			{
+				switch(extract_string(line, tmp, sizeof(tmp)))
+				{
+					case -1:
+						state = 2;
+						break;
+					default:
+						strcat(key, tmp);
+				}
+			}
+		}
+		else if( state == 3 )
 		{
 			switch(extract_string(line, tmp, sizeof(tmp)))
 			{
 				case -1:
-					state = 3;
+					state = 4;
 					break;
 				default:
 					strcat(val, tmp);
 			}
 		}
-		else if( state == 3 )
+
+		if( state == 4 )
 		{
 			if( strlen(key) > 0 && strlen(val) > 0 )
 			{

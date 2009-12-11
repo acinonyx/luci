@@ -45,6 +45,10 @@ function bind.section(self, stype)
 		inst.bind  = self
 		inst.stype = stype
 		inst.sid   = sid
+
+		if inst._init then
+			inst:_init(sid)
+		end
 	end
 	return x
 end
@@ -160,9 +164,9 @@ end
 function bsection.property_bool(self, k, n)
 	self[n or k] = function(c, val)
 		if val == nil then
-			return self.bind:bool(c:get(k, c.sid))
+			return bind:bool(c:get(k, c.sid))
 		else
-			return c:set(k, self.bind:bool(val) and "1" or "0", c.sid)
+			return c:set(k, bind:bool(val) and "1" or "0", c.sid)
 		end
 	end
 end

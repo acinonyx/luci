@@ -13,15 +13,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#. Voice
-msgid "l_v_adminvoice"
-msgstr "Voice"
-
-#. Voice
-msgid "l_v_minivoice"
-msgstr "Voice"
-
-msgid "l_v_miniphones"
+msgid "Phones"
 msgstr "Phones"
 
 msgid "l_v_adminphones"

@@ -16,9 +16,8 @@ local nw  = require "luci.model.network"
 local fw  = require "luci.model.firewall"
 local uci = require "luci.model.uci".cursor()
 
-m = SimpleForm("network", translate("a_n_create", "Create Or Attach Network"),
-	translate("a_n_c_desc",
-		"If the interface is attached to an existing network it will be <em>bridged</em> " ..
+m = SimpleForm("network", translate("Create Or Attach Network"),
+	translate("If the interface is attached to an existing network it will be <em>bridged</em> " ..
 		"to the existing interfaces and is covered by the firewall zone of the choosen network.<br />" ..
 		"Uncheck the attach option to define a new standalone network for this interface."
 	))
@@ -26,21 +25,20 @@ m = SimpleForm("network", translate("a_n_create", "Create Or Attach Network"),
 nw.init(uci)
 fw.init(uci)
 
-attachnet = m:field(Flag, "_attach", translate("a_n_c_attach", "Attach to existing network"))
+attachnet = m:field(Flag, "_attach", translate("Attach to existing network"))
 attachnet.rmempty = false
 attachnet.default = "1"
 
-newnet = m:field(Value, "_netname_new", translate("a_n_c_netname", "Name of the new network"),
-	translate("a_n_c_netname_desc",
-		"The allowed characters are: <code>A-Z</code>, <code>a-z</code>, " ..
+newnet = m:field(Value, "_netname_new", translate("Name of the new network"),
+	translate("The allowed characters are: <code>A-Z</code>, <code>a-z</code>, " ..
 		"<code>0-9</code> and <code>_</code>"
 	))
 
 newnet:depends("_attach", "")
-newnet.default = "net_" .. arg[1]:gsub("[^%w_]+", "_")
+newnet.default = arg[1] and "net_" .. arg[1]:gsub("[^%w_]+", "_")
 
 addnet = m:field(Value, "_netname_attach",
-	translate("a_n_c_network", "Network to attach interface to"))
+	translate("Network to attach interface to"))
 
 addnet.template = "cbi/network_netlist"
 addnet.widget = "radio"
@@ -48,13 +46,13 @@ addnet.nocreate = true
 addnet:depends("_attach", "1")
 
 fwzone = m:field(Value, "_fwzone",
-	translate("network_interface_fwzone"),
-	translate("network_interface_fwzone_desc"))
+	translate("Create / Assign firewall-zone"),
+	translate("Choose the firewall zone you want to assign to this interface. Select <em>unspecified</em> to remove the interface from the associated zone or fill out the <em>create</em> field to define a new zone and attach the interface to it."))
 
 fwzone.template = "cbi/firewall_zonelist"
 addnet.widget = "radio"
 fwzone:depends("_attach", "")
-fwzone.default = "zone_" .. arg[1]:gsub("[^%w_]+", "_")
+fwzone.default = arg[1] and "zone_" .. arg[1]:gsub("[^%w_]+", "_")
 
 
 function attachnet.write(self, section, value)
@@ -91,6 +89,7 @@ function attachnet.write(self, section, value)
 			zone:add_network(net:name())
 		end
 
+		uci:save("wireless")
 		uci:save("network")
 		uci:save("firewall")
 		luci.http.redirect(luci.dispatcher.build_url("admin/network/network", net:name()))

@@ -419,8 +419,8 @@ function Server.process(self, client, env)
 		set_memory_limit(env.config.memlimit)
 	end
 
-	client:setsockopt("socket", "rcvtimeo", 60)
-	client:setsockopt("socket", "sndtimeo", 60)
+	client:setsockopt("socket", "rcvtimeo", 5)
+	client:setsockopt("socket", "sndtimeo", 5)
 	
 	repeat
 		-- parse headers
@@ -529,9 +529,10 @@ function Server.process(self, client, env)
 		
 		if close then
 			headers["Connection"] = "close"
-		elseif message.env.SERVER_PROTOCOL == "HTTP/1.0" then
+		else
 			headers["Connection"] = "Keep-Alive"
-		end 
+			headers["Keep-Alive"] = "timeout=5, max=50"
+		end
 
 		headers["Date"] = date.to_http(os.time())
 		local header = {
@@ -558,17 +559,24 @@ function Server.process(self, client, env)
 		stat, code, msg = client:writeall(table.concat(header, "\r\n"))
 
 		if sourceout and stat then
+			local closefd
 			if util.instanceof(sourceout, IOResource) then
 				if not headers["Transfer-Encoding"] then
 					stat, code, msg = sourceout.fd:copyz(client, sourceout.len)
+					closefd = sourceout.fd
 					sourceout = nil
 				else
+					closefd = sourceout.fd
 					sourceout = sourceout.fd:blocksource(nil, sourceout.len)
 				end
 			end
 
 			if sourceout then
 				stat, msg = ltn12.pump.all(sourceout, sinkout)
+			end
+
+			if closefd then
+				closefd:close()
 			end
 		end
 

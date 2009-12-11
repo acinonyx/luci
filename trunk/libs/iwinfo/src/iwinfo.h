@@ -18,9 +18,15 @@
 #include <net/if.h>
 #include <errno.h>
 
-#include "iwinfo_wl.h"
-#include "iwinfo_madwifi.h"
 #include "iwinfo_wext.h"
+
+#ifdef USE_WL
+#include "iwinfo_wl.h"
+#endif
+
+#ifdef USE_MADWIFI
+#include "iwinfo_madwifi.h"
+#endif
 
 
 #define IWINFO_BUFSIZE	24 * 1024
@@ -34,6 +40,11 @@ struct iwinfo_assoclist_entry {
 struct iwinfo_txpwrlist_entry {
 	uint8_t	dbm;
 	uint8_t	mw;
+};
+
+struct iwinfo_freqlist_entry {
+	uint8_t channel;
+	uint32_t mhz;
 };
 
 struct iwinfo_crypto_entry {

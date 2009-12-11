@@ -14,17 +14,17 @@ $Id$
 module("luci.controller.admin.services", package.seeall)
 
 function index()
-	luci.i18n.loadc("admin-core")
+	luci.i18n.loadc("base")
 	local i18n = luci.i18n.translate
 	
 	local page  = node("admin", "services", "crontab")
 	page.target = form("admin_services/crontab")
-	page.title  = i18n("a_s_crontab")
+	page.title  = i18n("Scheduled Tasks")
 	page.order  = 50
 
 	local page  = node("admin", "services")
 	page.target = template("admin_services/index")
-	page.title  = i18n("services", "Dienste")  
+	page.title  = i18n("Services")  
 	page.order  = 40
 	page.index  = true
 	

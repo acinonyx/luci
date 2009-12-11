@@ -18,13 +18,14 @@ local wa  = require "luci.tools.webadmin"
 local fs  = require "nixio.fs"
 
 local netstate = luci.model.uci.cursor_state():get_all("network")
-m = Map("network", translate("interfaces"))
+m = Map("network", translate("Interfaces"))
 
 local created
 local netstat = sys.net.deviceinfo()
 
 s = m:section(TypedSection, "interface", "")
 s.addremove = true
+s.anonymous = false
 s.extedit   = luci.dispatcher.build_url("admin", "network", "network") .. "/%s"
 s.template  = "cbi/tblsection"
 s.override_scheme = true
@@ -65,7 +66,7 @@ function up.write(self, section, value)
 	os.execute(call .. " " .. section .. " >/dev/null 2>&1")
 end
 
-ifname = s:option(DummyValue, "ifname", translate("device"))
+ifname = s:option(DummyValue, "ifname", translate("Device"))
 function ifname.cfgvalue(self, section)
 	return netstate[section] and netstate[section].ifname
 end
@@ -74,7 +75,7 @@ ifname.titleref = luci.dispatcher.build_url("admin", "network", "vlan")
 
 
 if luci.model.uci.cursor():load("firewall") then
-	zone = s:option(DummyValue, "_zone", translate("zone"))
+	zone = s:option(DummyValue, "_zone", translate("Zone"))
 	zone.titleref = luci.dispatcher.build_url("admin", "network", "firewall", "zones")
 
 	function zone.cfgvalue(self, section)
@@ -91,7 +92,7 @@ function hwaddr.cfgvalue(self, section)
 end
 
 
-ipaddr = s:option(DummyValue, "ipaddr", translate("addresses"))
+ipaddr = s:option(DummyValue, "ipaddr", translate("Addresses"))
 function ipaddr.cfgvalue(self, section)
 	return table.concat(wa.network_get_addresses(section), ", ")
 end

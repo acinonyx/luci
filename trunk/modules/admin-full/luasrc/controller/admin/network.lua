@@ -20,34 +20,26 @@ function index()
 
 	local page  = node("admin", "network")
 	page.target = alias("admin", "network", "network")
-	page.title  = i18n("network")
+	page.title  = i18n("Network")
 	page.order  = 50
 	page.index  = true
 
 	local page  = node("admin", "network", "vlan")
 	page.target = cbi("admin_network/vlan")
-	page.title  = i18n("a_n_switch")
+	page.title  = i18n("Switch")
 	page.order  = 20
 
-	local page = entry({"admin", "network", "wireless"}, arcombine(template("admin_network/wifi_overview"), cbi("admin_network/wifi")), i18n("wifi"), 15)
-	page.i18n   = "wifi"
+	local page = entry({"admin", "network", "wireless"}, arcombine(template("admin_network/wifi_overview"), cbi("admin_network/wifi")), i18n("Wifi"), 15)
 	page.leaf = true
 	page.subindex = true
 
-	uci:foreach("wireless", "wifi-device",
-		function (section)
-			local ifc = section[".name"]
-				entry({"admin", "network", "wireless", ifc},
-				 true,
-				 ifc:upper()).i18n = "wifi"
-		end
-	)
-
 	local page = entry({"admin", "network", "wireless_join"}, call("wifi_join"), nil, 16)
-	page.i18n = "wifi"
 	page.leaf = true
 
-	local page = entry({"admin", "network", "network"}, arcombine(cbi("admin_network/network"), cbi("admin_network/ifaces")), i18n("interfaces", "Schnittstellen"), 10)
+	local page = entry({"admin", "network", "wireless_delete"}, call("wifi_delete"), nil, 16)
+	page.leaf = true
+
+	local page = entry({"admin", "network", "network"}, arcombine(cbi("admin_network/network"), cbi("admin_network/ifaces")), i18n("Interfaces"), 10)
 	page.leaf   = true
 	page.subindex = true
 
@@ -65,26 +57,19 @@ function index()
 		end
 	)
 
-	local page  = node("admin", "network", "dhcp")
-	page.target = cbi("admin_network/dhcp")
-	page.title  = "DHCP"
+	local page  = node("admin", "network", "dhcpleases")
+	page.target = cbi("admin_network/dhcpleases")
+	page.title  = i18n("DHCP Leases")
 	page.order  = 30
-	page.subindex = true
-
-	entry(
-	 {"admin", "network", "dhcp", "leases"},
-	 cbi("admin_network/dhcpleases"),
-	 i18n("dhcp_leases")
-	)
 
 	local page  = node("admin", "network", "hosts")
 	page.target = cbi("admin_network/hosts")
-	page.title  = i18n("hostnames", "Hostnames")
+	page.title  = i18n("Hostnames")
 	page.order  = 40
 
 	local page  = node("admin", "network", "routes")
 	page.target = cbi("admin_network/routes")
-	page.title  = i18n("a_n_routes_static")
+	page.title  = i18n("Static Routes")
 	page.order  = 50
 
 end
@@ -103,74 +88,33 @@ function wifi_join()
 	local ssid = param("join")
 
 	if dev and ssid then
-		local wep     = (tonumber(param("wep")) == 1)
-		local wpa     = tonumber(param("wpa_version")) or 0
-		local channel = tonumber(param("channel"))
-		local mode    = param("mode")
-		local bssid   = param("bssid")
+		local cancel  = (param("cancel") or param("cbi.cancel")) and true or false
 
-		local confirm = (param("confirm") == "1")
-		local cancel  = param("cancel") and true or false
-
-		if confirm and not cancel then
-			local fixed_bssid = (param("fixed_bssid") == "1")
-			local replace_net = (param("replace_net") == "1")
-			local autoconnect = (param("autoconnect") == "1")
-			local attach_intf = param("attach_intf")
-
-			local uci = require "luci.model.uci".cursor()
-
-			if replace_net then
-				uci:delete_all("wireless", "wifi-iface")
-			end
-
-			local wificonf = {
-				device  = dev,
-				mode    = (mode == "Ad-Hoc" and "adhoc" or "sta"),
-				ssid    = ssid
-			}
-
-			if attach_intf and uci:get("network", attach_intf, "ifname") then
-				-- target network already has a interface, make it a bridge
-				uci:set("network", attach_intf, "type", "bridge")
-				uci:save("network")
-				uci:commit("network")
-
-				if autoconnect then
-					require "luci.sys".call("/sbin/ifup " .. attach_intf)
-				end
-			end
-
-			if fixed_bssid then
-				wificonf.bssid = bssid
-			end
-
-			if wep then
-				wificonf.encryption = "wep"
-				wificonf.key = param("key")
-			elseif wpa > 0 then
-				wificonf.encryption = param("wpa_suite")
-				wificonf.key = param("key")
-			end
-
-			uci:section("wireless", "wifi-iface", nil, wificonf)
-			uci:delete("wireless", dev, "disabled")
-			uci:set("wireless", dev, "channel", channel)
-
-			uci:save("wireless")
-			uci:commit("wireless")
-
-			if autoconnect then
-				require "luci.sys".call("/sbin/wifi")
-			end
-
-			luci.http.redirect(luci.dispatcher.build_url("admin/network/wireless", dev))
-		elseif cancel then
+		if cancel then
 			luci.http.redirect(luci.dispatcher.build_url("admin/network/wireless_join?device=" .. dev))
 		else
-			luci.template.render("admin_network/wifi_join_settings")
+			local cbi = require "luci.cbi"
+			local tpl = require "luci.template"
+			local map = luci.cbi.load("admin_network/wifi_add")[1]
+
+			if map:parse() ~= cbi.FORM_DONE then
+				tpl.render("header")
+				map:render()
+				tpl.render("footer")
+			end
 		end
 	else
 		luci.template.render("admin_network/wifi_join")
 	end
+end
+
+function wifi_delete(network)
+	local uci = require "luci.model.uci".cursor()
+	local wlm = require "luci.model.wireless"
+
+	wlm.init(uci)
+	wlm:del_network(network)
+
+	uci:save("wireless")
+	luci.http.redirect(luci.dispatcher.build_url("admin/network/wireless"))
 end
