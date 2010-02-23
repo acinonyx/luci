@@ -143,7 +143,12 @@ static int nixio_sendfile(lua_State *L) {
 	const off_t offset = lseek(infd, 0, SEEK_CUR);
 
 	do {
+#ifdef __DARWIN__
+		r = sendfile(infd, sock, offset, (off_t *)&len, NULL, 0);
+		spliced = r;
+#else
 		r = sendfile(infd, sock, offset, len, NULL, &spliced, 0);
+#endif
 	} while (r == -1 && errno == EINTR);
 
 	if (r == -1) {
