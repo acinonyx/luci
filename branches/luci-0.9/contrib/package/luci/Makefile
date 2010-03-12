@@ -256,7 +256,7 @@ NIXIO_TLS:=axtls
 define Package/luci-nixio
   $(call Package/luci/libtemplate)
   TITLE:=NIXIO POSIX Library
-  DEPENDS:=+PACKAGE_luci-nixio_openssl:libopenssl +PACKAGE_luci-nixio_cyassl:libcyassl-luci
+  DEPENDS:=+PACKAGE_luci-nixio_openssl:libopenssl +PACKAGE_luci-nixio_cyassl:libcyassl
 endef
 
 define Package/luci-nixio/install
@@ -273,7 +273,7 @@ define Package/luci-nixio/config
 
 		config PACKAGE_luci-nixio_cyassl
 			bool "CyaSSL"
-			select PACKAGE_libcyassl-luci
+			select PACKAGE_libcyassl
 
 		config PACKAGE_luci-nixio_openssl
 			bool "OpenSSL"
@@ -365,11 +365,6 @@ define Package/luci-admin-core
   $(call Package/luci/webtemplate)
   DEPENDS+=+luci-web +luci-cbi +luci-i18n-english
   TITLE:=Web UI Core Module
-endef
-
-define Package/luci-admin-core/conffiles
-/etc/config/luci_hosts
-/etc/config/luci_ethers
 endef
 
 define Package/luci-admin-core/install
@@ -565,25 +560,14 @@ define Package/luci-app-samba/install
 endef
 
 
-define Package/luci-app-uvc_streamer
+define Package/luci-app-mmc-over-gpio
   $(call Package/luci/webtemplate)
-  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-uvc_streamer:uvc-streamer
-  TITLE:=Webcam Streaming - UVC-Streamer module
-endef
-
-define Package/luci-app-uvc_streamer/install
-        $(call Package/luci/install/template,$(1),applications/luci-uvc_streamer)
-endef
-
-
-define Package/luci-app-mmc_over_gpio
-  $(call Package/luci/webtemplate)
-  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-mmc_over_gpio:kmod-mmc-over-gpio
+  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-mmc-over-gpio:kmod-mmc-over-gpio
   TITLE:=mmc_over_gpio
 endef
 
-define Package/luci-app-mmc_over_gpio/install
-        $(call Package/luci/install/template,$(1),applications/luci-mmc_over_gpio)
+define Package/luci-app-mmc-over-gpio/install
+        $(call Package/luci/install/template,$(1),applications/luci-mmc-over-gpio)
 endef
 
 
@@ -608,14 +592,14 @@ define Package/luci-app-ushare/install
         $(call Package/luci/install/template,$(1),applications/luci-ushare)
 endef
 
-define Package/luci-app-hd_idle
+define Package/luci-app-hd-idle
   $(call Package/luci/webtemplate)
-  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-hd_idle:hd-idle
+  DEPENDS+=+luci-admin-full +PACKAGE_luci-app-hd-idle:hd-idle
   TITLE:=hd-idle
 endef
 
-define Package/luci-app-hd_idle/install
-        $(call Package/luci/install/template,$(1),applications/luci-hd_idle)
+define Package/luci-app-hd-idle/install
+        $(call Package/luci/install/template,$(1),applications/luci-hd-idle)
 endef
 
 define Package/luci-app-tinyproxy
@@ -879,17 +863,27 @@ endef
 
 
 ### Collections ###
-define Package/luci-kamikaze
+define Package/luci
   $(call Package/luci/collectiontemplate)
   TITLE:=Standard OpenWrt Kamikaze set including full and mini admin and the standard theme
-  DEPENDS:=+luci-admin-full +luci-admin-mini +luci-theme-openwrt +luci-app-firewall
+  DEPENDS:=+luci-admin-full +luci-admin-mini +luci-theme-openwrt +luci-app-firewall +luci-app-initmgr
 endef
+
+define Package/luci/install
+	true
+endef
+
 
 define Package/luci-light
   $(call Package/luci/collectiontemplate)
   TITLE:=Minimum package set using only admin mini and a theme without grafics
   DEPENDS:=+luci-admin-mini +luci-theme-openwrtlight
 endef
+
+define Package/luci-light/install
+	true
+endef
+
 
 ### Compile ###
 ifneq ($(CONFIG_PACKAGE_luci-core),)
@@ -994,11 +988,8 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-app-samba),)
 	PKG_SELECTED_MODULES+=applications/luci-samba
 endif
-ifneq ($(CONFIG_PACKAGE_luci-app-uvc_streamer),)
-	PKG_SELECTED_MODULES+=applications/luci-uvc_streamer
-endif
-ifneq ($(CONFIG_PACKAGE_luci-app-mmc_over_gpio),)
-        PKG_SELECTED_MODULES+=applications/luci-mmc_over_gpio
+ifneq ($(CONFIG_PACKAGE_luci-app-mmc-over-gpio),)
+        PKG_SELECTED_MODULES+=applications/luci-mmc-over-gpio
 endif
 ifneq ($(CONFIG_PACKAGE_luci-app-p910nd),)
         PKG_SELECTED_MODULES+=applications/luci-p910nd
@@ -1006,8 +997,8 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-app-ushare),)
         PKG_SELECTED_MODULES+=applications/luci-ushare
 endif
-ifneq ($(CONFIG_PACKAGE_luci-app-hd_idle),)
-       PKG_SELECTED_MODULES+=applications/luci-hd_idle
+ifneq ($(CONFIG_PACKAGE_luci-app-hd-idle),)
+       PKG_SELECTED_MODULES+=applications/luci-hd-idle
 endif
 ifneq ($(CONFIG_PACKAGE_luci-app-tinyproxy),)
        PKG_SELECTED_MODULES+=applications/luci-tinyproxy
@@ -1138,11 +1129,10 @@ $(eval $(call BuildPackage,luci-app-upnp))
 $(eval $(call BuildPackage,luci-app-ntpc))
 $(eval $(call BuildPackage,luci-app-ddns))
 $(eval $(call BuildPackage,luci-app-samba))
-$(eval $(call BuildPackage,luci-app-uvc_streamer))
-$(eval $(call BuildPackage,luci-app-mmc_over_gpio))
+$(eval $(call BuildPackage,luci-app-mmc-over-gpio))
 $(eval $(call BuildPackage,luci-app-p910nd))
 $(eval $(call BuildPackage,luci-app-ushare))
-$(eval $(call BuildPackage,luci-app-hd_idle))
+$(eval $(call BuildPackage,luci-app-hd-idle))
 $(eval $(call BuildPackage,luci-app-tinyproxy))
 $(eval $(call BuildPackage,luci-app-initmgr))
 $(eval $(call BuildPackage,luci-app-livestats))
@@ -1172,5 +1162,5 @@ $(eval $(call BuildPackage,luci-i18n-catalan))
 $(eval $(call BuildPackage,luci-i18n-portuguese))
 $(eval $(call BuildPackage,luci-i18n-spanish))
 
-$(eval $(call BuildPackage,luci-kamikaze))
+$(eval $(call BuildPackage,luci))
 $(eval $(call BuildPackage,luci-light))

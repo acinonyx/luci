@@ -1,6 +1,6 @@
 config 'statistics' 'rrdtool'
         option 'default_timespan' '1hour'
-        option 'image_width' '400'
+        option 'image_width' '600'
         option 'image_path' '/tmp/rrdimg'
 
 config 'statistics' 'collectd'
@@ -8,7 +8,7 @@ config 'statistics' 'collectd'
 	option 'Include' '/etc/collectd/conf.d'
 	option 'PIDFile' '/var/run/collectd.pid'
 	option 'PluginDir' '/usr/lib/collectd'
-	option 'TypesDB' '/usr/lib/collectd/types.db'
+	option 'TypesDB' '/usr/share/collectd/types.db'
 	option 'Interval' '30'
 	option 'ReadThreads' '2'
 
