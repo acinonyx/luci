@@ -15,13 +15,16 @@ $Id$
 
 local os   = require "os"
 local io   = require "io"
+local fs   = require "nixio.fs"
 local util = require "luci.util"
 
 local type  = type
 local pairs = pairs
 local error = error
+local table = table
 
-local ipkg = "opkg"
+local ipkg = "opkg --force-removal-of-dependent-packages --force-overwrite --autoremove"
+local icfg = "/etc/opkg.conf"
 
 --- LuCI IPKG/OPKG call abstraction library
 module "luci.model.ipkg"
@@ -30,8 +33,7 @@ module "luci.model.ipkg"
 -- Internal action function
 local function _action(cmd, ...)
 	local pkg = ""
-	arg.n = nil
-	for k, v in pairs(arg) do
+	for k, v in pairs({...}) do
 		pkg = pkg .. " '" .. v:gsub("'", "") .. "'"
 	end
 
@@ -147,3 +149,78 @@ end
 function upgrade()
 	return _action("upgrade")
 end
+
+-- List helper
+function _list(action, pat, cb)
+	local fd = io.popen(ipkg .. " " .. action .. (pat and " '*" .. pat:gsub("'", "") .. "*'" or ""))
+	if fd then
+		local name, version, desc
+		while true do
+			local line = fd:read("*l")
+			if not line then break end
+
+			if line:sub(1,1) ~= " " then
+				name, version, desc = line:match("^(.-) %- (.-) %- (.+)")
+
+				if not name then
+					name, version = line:match("^(.-) %- (.+)")
+					desc = ""
+				end
+
+				cb(name, version, desc)
+
+				name    = nil
+				version = nil
+				desc    = nil
+			end
+		end
+
+		fd:close()
+	end
+end
+
+--- List all packages known to opkg.
+-- @param pat	Only find packages matching this pattern, nil lists all packages
+-- @param cb	Callback function invoked for each package, receives name, version and description as arguments
+-- @return	nothing
+function list_all(pat, cb)
+	_list("list", pat, cb)
+end
+
+--- List installed packages.
+-- @param pat	Only find packages matching this pattern, nil lists all packages
+-- @param cb	Callback function invoked for each package, receives name, version and description as arguments
+-- @return	nothing
+function list_installed(pat, cb)
+	_list("list_installed", pat, cb)
+end
+
+--- Determines the overlay root used by opkg.
+-- @return		String containing the directory path of the overlay root.
+function overlay_root()
+	local od = "/"
+	local fd = io.open(icfg, "r")
+
+	if fd then
+		local ln
+
+		repeat
+			ln = fd:read("*l")
+			if ln and ln:match("^%s*option%s+overlay_root%s+") then
+				od = ln:match("^%s*option%s+overlay_root%s+(%S+)")
+
+				local s = fs.stat(od)
+				if not s or s.type ~= "dir" then
+					od = "/"
+				end
+
+				break
+			end
+		until not ln
+
+		fd:close()
+	end
+
+	return od
+end
+
