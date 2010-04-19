@@ -15,8 +15,25 @@ $Id$
 require("luci.sys")
 require("luci.sys.zoneinfo")
 require("luci.tools.webadmin")
+require("luci.fs")
 
 m = Map("system", translate("System"), translate("Here you can configure the basic aspects of your device like its hostname or the timezone."))
+
+function m.on_parse()
+	local has_rdate = false
+
+	m.uci:foreach("system", "rdate",
+		function()
+			has_rdate = true
+			return false
+		end)
+
+	if not has_rdate then
+		m.uci:section("system", "rdate", nil, { })
+		m.uci:save("system")
+	end
+end
+
 
 s = m:section(TypedSection, "system", "")
 s.anonymous = true
@@ -72,11 +89,20 @@ function tz.write(self, section, value)
 	end
 
 	AbstractValue.write(self, section, value)
-	self.map.uci:set("system", section, "timezone", lookup_zone(value) or "GMT0")
+	local timezone = lookup_zone(value) or "GMT0"
+	self.map.uci:set("system", section, "timezone", timezone)
+	luci.fs.writefile("/etc/TZ", timezone .. "\n")
 end
 
 s:option(Value, "log_size", nil, "kiB").optional = true
 s:option(Value, "log_ip").optional = true
 s:option(Value, "conloglevel").optional = true
 s:option(Value, "cronloglevel").optional = true
+
+s2 = m:section(TypedSection, "rdate", translate("Time Server (rdate)"))
+s2.anonymous = true
+s2.addremove = false
+
+s2:option(DynamicList, "server", translate("Server"))
+
 return m

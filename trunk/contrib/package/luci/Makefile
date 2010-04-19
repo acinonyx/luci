@@ -275,7 +275,7 @@ endef
 
 
 
-NIXIO_TLS:=cyassl
+NIXIO_TLS:=
 
 define Package/luci-nixio
   $(call Package/luci/libtemplate)
@@ -290,7 +290,10 @@ endef
 define Package/luci-nixio/config
 	choice
 		prompt "TLS Provider"
-		default PACKAGE_luci-nixio_cyassl
+		default PACKAGE_luci-nixio_notls
+
+		config PACKAGE_luci-nixio_notls
+			bool "Disabled"
 
 		config PACKAGE_luci-nixio_axtls
 			bool "Builtin (axTLS)"
@@ -344,7 +347,7 @@ endef
 define Package/luci-web
   $(call Package/luci/libtemplate)
   DEPENDS+=+luci-http +luci-sys +luci-nixio +luci-uci \
-  	+luci-sgi-cgi +luci-sgi-uhttpd +luci-lmo
+  	+luci-sgi-cgi +luci-lmo
   TITLE:=MVC Webframework
   $(call Config,luci.main.lang,string,auto,Default Language)
 endef
@@ -764,6 +767,27 @@ define Package/luci-app-p2pblock/install
         $(call Package/luci/install/template,$(1),applications/luci-p2pblock)
 endef
 
+define Package/luci-app-multiwan
+  $(call Package/luci/webtemplate)
+  TITLE:=LuCI Support for the OpenWrt MultiWAN agent
+  DEPENDS+=+luci-admin-core +luci-app-firewall \
+    +PACKAGE_luci-app-multiwan:multiwan
+endef
+
+define Package/luci-app-multiwan/install
+        $(call Package/luci/install/template,$(1),applications/luci-multiwan)
+endef
+
+define Package/luci-app-wol
+  $(call Package/luci/webtemplate)
+  TITLE:=LuCI Support for Wake-on-LAN
+  DEPENDS+=+luci-admin-core +PACKAGE_luci-app-wol:etherwake
+endef
+
+define Package/luci-app-wol/install
+        $(call Package/luci/install/template,$(1),applications/luci-wol)
+endef
+
 
 ### Server Gateway Interfaces ###
 
@@ -777,9 +801,9 @@ define Package/luci-sgi-cgi/install
 endef
 
 define Package/luci-sgi-uhttpd
-  $(call Package/luci/webservertemplate)
+  $(call Package/luci/libtemplate)
   TITLE:=Binding for the uHTTPd server
-  DEPENDS+=+uhttpd +uhttpd-mod-tls +uhttpd-mod-lua +px5g
+  DEPENDS+=+uhttpd +uhttpd-mod-lua
 endef
 
 define Package/luci-sgi-uhttpd/install
@@ -987,8 +1011,9 @@ endef
 ### Collections ###
 define Package/luci
   $(call Package/luci/collectiontemplate)
-  TITLE:=Standard OpenWrt Kamikaze set including full and mini admin and the standard theme
-  DEPENDS:=+luci-admin-full +luci-admin-mini +luci-theme-openwrt +luci-app-firewall +luci-app-initmgr
+  TITLE:=Standard OpenWrt set including full and mini admin and the standard theme
+  DEPENDS:=+uhttpd +luci-admin-full +luci-admin-mini +luci-theme-openwrt \
+    +luci-app-firewall +luci-app-initmgr
 endef
 
 define Package/luci/install
@@ -996,10 +1021,33 @@ define Package/luci/install
 endef
 
 
+define Package/luci-ssl
+  $(call Package/luci/collectiontemplate)
+  TITLE:=Standard OpenWrt set with https support
+  DEPENDS:=+uhttpd +uhttpd-mod-tls +px5g +luci-admin-full +luci-admin-mini \
+    +luci-theme-openwrt +luci-app-firewall +luci-app-initmgr
+endef
+
+define Package/luci-ssl/install
+	true
+endef
+
+
+define Package/luci-medium
+  $(call Package/luci/collectiontemplate)
+  TITLE:=Medium package set using only admin full and a theme without graphics
+  DEPENDS:=+uhttpd +luci-admin-full +luci-theme-openwrtlight
+endef
+
+define Package/luci-medium/install
+	true
+endef
+
+
 define Package/luci-light
   $(call Package/luci/collectiontemplate)
-  TITLE:=Minimum package set using only admin mini and a theme without grafics
-  DEPENDS:=+luci-admin-mini +luci-theme-openwrtlight
+  TITLE:=Minimum package set using only admin mini and a theme without graphics
+  DEPENDS:=+uhttpd +luci-admin-mini +luci-theme-openwrtlight
 endef
 
 define Package/luci-light/install
@@ -1161,6 +1209,12 @@ endif
 ifneq ($(CONFIG_PACKAGE_luci-app-p2pblock),)
        PKG_SELECTED_MODULES+=applications/luci-p2pblock
 endif
+ifneq ($(CONFIG_PACKAGE_luci-app-multiwan),)
+       PKG_SELECTED_MODULES+=applications/luci-multiwan
+endif
+ifneq ($(CONFIG_PACKAGE_luci-app-wol),)
+       PKG_SELECTED_MODULES+=applications/luci-wol
+endif
 
 
 ifneq ($(CONFIG_PACKAGE_luci-sgi-cgi),)
@@ -1295,6 +1349,8 @@ $(eval $(call BuildPackage,luci-app-asterisk))
 $(eval $(call BuildPackage,luci-app-polipo))
 $(eval $(call BuildPackage,luci-app-openvpn))
 $(eval $(call BuildPackage,luci-app-p2pblock))
+$(eval $(call BuildPackage,luci-app-multiwan))
+$(eval $(call BuildPackage,luci-app-wol))
 
 $(eval $(call BuildPackage,luci-sgi-cgi))
 $(eval $(call BuildPackage,luci-sgi-uhttpd))
@@ -1321,4 +1377,6 @@ $(eval $(call BuildPackage,luci-i18n-spanish))
 $(eval $(call BuildPackage,luci-i18n-vietnamese))
 
 $(eval $(call BuildPackage,luci))
+$(eval $(call BuildPackage,luci-ssl))
+$(eval $(call BuildPackage,luci-medium))
 $(eval $(call BuildPackage,luci-light))
