@@ -83,21 +83,38 @@ if luci.model.uci.cursor():load("firewall") then
 	end
 end
 
-hwaddr = s:option(DummyValue, "_hwaddr")
+hwaddr = s:option(DummyValue, "_hwaddr",
+	translate("<abbr title=\"Media Access Control\">MAC</abbr>-Address"),
+        translate("Hardware Address"))
+
 function hwaddr.cfgvalue(self, section)
 	local ix = self.map:get(section, "ifname") or ""
-	return fs.readfile("/sys/class/net/" .. ix .. "/address")
-	 or luci.util.exec("ifconfig " .. ix):match(" ([A-F0-9:]+)%s*\n")
-	 or "n/a"
+	      ix = (type(ix) == "table") and ix[1] or ix
+
+	local mac = fs.readfile("/sys/class/net/" .. ix .. "/address")
+
+	if not mac then
+		mac = luci.util.exec("ifconfig " .. ix)
+		mac = mac and mac:match(" ([A-F0-9:]+)%s*\n")
+	end
+
+	if mac and #mac > 0 then
+		return mac:upper()
+	end
+
+	return "?"
 end
 
 
-ipaddr = s:option(DummyValue, "ipaddr", translate("Addresses"))
+ipaddr = s:option(DummyValue, "ipaddr",
+	translate("<abbr title=\"Internet Protocol Version 4\">IPv4</abbr>" ..
+		"-Address"))
 function ipaddr.cfgvalue(self, section)
 	return table.concat(wa.network_get_addresses(section), ", ")
 end
 
-txrx = s:option(DummyValue, "_txrx")
+txrx = s:option(DummyValue, "_txrx", translate("Traffic"),
+	translate("transmitted / received"))
 
 function txrx.cfgvalue(self, section)
 	local ix = self.map:get(section, "ifname")
@@ -111,7 +128,8 @@ function txrx.cfgvalue(self, section)
 	return string.format("%s / %s", tx, rx)
 end
 
-errors = s:option(DummyValue, "_err")
+errors = s:option(DummyValue, "_err", translate("Errors"),
+	translate("TX / RX"))
 
 function errors.cfgvalue(self, section)
 	local ix = self.map:get(section, "ifname")
