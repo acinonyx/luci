@@ -29,12 +29,12 @@ module("luci.cbi", package.seeall)
 require("luci.template")
 local util = require("luci.util")
 require("luci.http")
-require("luci.uvl")
 
 
 --local event      = require "luci.sys.event"
 local fs         = require("nixio.fs")
 local uci        = require("luci.model.uci")
+local datatypes  = require("luci.cbi.datatypes")
 local class      = util.class
 local instanceof = util.instanceof
 
@@ -62,12 +62,10 @@ function load(cbimap, ...)
 	local cbidir = luci.util.libpath() .. "/model/cbi/"
 	local func, err
 
-	if fs.access(cbimap) then
-		func, err = loadfile(cbimap)
-	elseif fs.access(cbidir..cbimap..".lua") then
+	if fs.access(cbidir..cbimap..".lua") then
 		func, err = loadfile(cbidir..cbimap..".lua")
-	elseif fs.access(cbidir..cbimap..".lua.gz") then
-		func, err = loadfile(cbidir..cbimap..".lua.gz")
+	elseif fs.access(cbimap) then
+		func, err = loadfile(cbimap)
 	else
 		func, err = nil, "Model '" .. cbimap .. "' not found!"
 	end
@@ -150,64 +148,6 @@ function load(cbimap, ...)
 	end
 
 	return maps
-end
-
-local function _uvl_validate_section(node, name)
-	local co = node.map:get()
-
-	luci.uvl.STRICT_UNKNOWN_OPTIONS = false
-	luci.uvl.STRICT_UNKNOWN_SECTIONS = false
-
-	local function tag_fields(e)
-		if e.option and node.fields[e.option] then
-			if node.fields[e.option].error then
-				node.fields[e.option].error[name] = e
-			else
-				node.fields[e.option].error = { [name] = e }
-			end
-		elseif e.childs then
-			for _, c in ipairs(e.childs) do tag_fields(c) end
-		end
-	end
-
-	local function tag_section(e)
-		local s = { }
-		for _, c in ipairs(e.childs or { e }) do
-			if c.childs and not c:is('DEPENDENCY') then
-				table.insert( s, c.childs[1]:string() )
-			else
-				table.insert( s, c:string() )
-			end
-		end
-		if #s > 0 then
-			if node.error then
-				node.error[name] = s
-			else
-				node.error = { [name] = s }
-			end
-		end
-	end
-
-	local stat, err = node.map.validator:validate_section(node.config, name, co)
-	if err then
-		node.map.save = false
-		tag_fields(err)
-		tag_section(err)
-	end
-
-end
-
-local function _uvl_strip_remote_dependencies(deps)
-	local clean = {}
-
-	for k, v in pairs(deps) do
-		k = k:gsub("%$config%.%$section%.", "")
-		if k:match("^[%w_]+$") and type(v) == "string" then
-			clean[k] = v
-		end
-	end
-
-	return clean
 end
 
 
@@ -319,9 +259,6 @@ function Map.__init__(self, config, ...)
 	if not self.uci:load(self.config) then
 		error("Unable to read UCI data: " .. self.config)
 	end
-
-	self.validator = luci.uvl.UVL()
-	self.scheme = self.validator:get_scheme(self.config)
 end
 
 function Map.formvalue(self, key)
@@ -829,20 +766,6 @@ end
 
 -- Appends a new option
 function AbstractSection.option(self, class, option, ...)
-	-- Autodetect from UVL
-	if class == true and self.map:get_scheme(self.sectiontype, option) then
-		local vs = self.map:get_scheme(self.sectiontype, option)
-		if vs.type == "boolean" then
-			class = Flag
-		elseif vs.type == "list" then
-			class = DynamicList
-		elseif vs.type == "enum" or vs.type == "reference" then
-			class = ListValue
-		else
-			class = Value
-		end
-	end
-
 	if instanceof(class, AbstractValue) then
 		local obj  = class(self.map, self, option, ...)
 		self:append(obj)
@@ -890,7 +813,7 @@ function AbstractSection.parse_optionals(self, section)
 
 	local field = self.map:formvalue("cbi.opt."..self.config.."."..section)
 	for k,v in ipairs(self.children) do
-		if v.optional and not v:cfgvalue(section) then
+		if v.optional and not v:cfgvalue(section) and not next(self.tabs) then
 			if field == v.option then
 				field = nil
 				self.map.proceed = true
@@ -1062,16 +985,6 @@ function NamedSection.__init__(self, map, section, stype, ...)
 
 	-- Defaults
 	self.addremove = false
-
-	-- Use defaults from UVL
-	if not self.override_scheme and self.map:get_scheme(self.sectiontype) then
-		local vs = self.map:get_scheme(self.sectiontype)
-		self.addremove = not vs.unique and not vs.required
-		self.dynamic   = vs.dynamic
-		self.title       = self.title or vs.title
-		self.description = self.description or vs.descr
-	end
-
 	self.template = "cbi/nsection"
 	self.section = section
 end
@@ -1099,10 +1012,6 @@ function NamedSection.parse(self, novld)
 		AbstractSection.parse_dynamic(self, s)
 		if self.map:submitstate() then
 			Node.parse(self, s)
-
-			if not novld and not self.override_scheme and self.map.scheme then
-				_uvl_validate_section(self, s)
-			end
 		end
 		AbstractSection.parse_optionals(self, s)
 
@@ -1124,19 +1033,9 @@ TypedSection = class(AbstractSection)
 function TypedSection.__init__(self, map, type, ...)
 	AbstractSection.__init__(self, map, type, ...)
 
-	self.template  = "cbi/tsection"
+	self.template = "cbi/tsection"
 	self.deps = {}
 	self.anonymous = false
-
-	-- Use defaults from UVL
-	if not self.override_scheme and self.map:get_scheme(self.sectiontype) then
-		local vs = self.map:get_scheme(self.sectiontype)
-		self.addremove = not vs.unique and not vs.required
-		self.dynamic   = vs.dynamic
-		self.anonymous = not vs.named
-		self.title       = self.title or vs.title
-		self.description = self.description or vs.descr
-	end
 end
 
 -- Return all matching UCI sections for this TypedSection
@@ -1177,10 +1076,6 @@ function TypedSection.parse(self, novld)
 		AbstractSection.parse_dynamic(self, k)
 		if self.map:submitstate() then
 			Node.parse(self, k, novld)
-
-			if not novld and not self.override_scheme and self.map.scheme then
-				_uvl_validate_section(self, k)
-			end
 		end
 		AbstractSection.parse_optionals(self, k)
 	end
@@ -1292,29 +1187,6 @@ function AbstractValue.__init__(self, map, section, option, ...)
 end
 
 function AbstractValue.prepare(self)
-	-- Use defaults from UVL
-	if not self.override_scheme
-	 and self.map:get_scheme(self.section.sectiontype, self.option) then
-		local vs = self.map:get_scheme(self.section.sectiontype, self.option)
-		if self.cast == nil then
-			self.cast = (vs.type == "list") and "list" or "string"
-		end
-		self.title       = self.title or vs.title
-		self.description = self.description or vs.descr
-		if self.default == nil then
-			self.default = vs.default
-		end
-
-		if vs.depends and not self.override_dependencies then
-			for i, deps in ipairs(vs.depends) do
-				deps = _uvl_strip_remote_dependencies(deps)
-				if next(deps) then
-					self:depends(deps)
-				end
-			end
-		end
-	end
-
 	self.cast = self.cast or "string"
 end
 
@@ -1418,7 +1290,7 @@ end
 
 -- Render if this value exists or if it is mandatory
 function AbstractValue.render(self, s, scope)
-	if not self.optional or self:cfgvalue(s) or self:formcreated(s) then
+	if not self.optional or next(self.section.tabs) or self:cfgvalue(s) or self:formcreated(s) then
 		scope = scope or {}
 		scope.section   = s
 		scope.cbid      = self:cbid(s)
@@ -1449,7 +1321,8 @@ end
 
 -- Return the UCI value of this object
 function AbstractValue.cfgvalue(self, section)
-	local value = self.map:get(section, self.option)
+	local value = (self.error and self.error[section] == "invalid")
+		and self:formvalue(section) or self.map:get(section, self.option)
 	if not value then
 		return nil
 	elseif not self.cast or self.cast == type(value) then
@@ -1465,6 +1338,20 @@ end
 
 -- Validate the form value
 function AbstractValue.validate(self, value)
+	if self.datatype and value and datatypes[self.datatype] then
+		if type(value) == "table" then
+			local v
+			for _, v in ipairs(value) do
+				if v and #v > 0 and not datatypes[self.datatype](v) then
+					return nil
+				end
+			end
+		else
+			if not datatypes[self.datatype](value) then
+				return nil
+			end
+		end
+	end
 	return value
 end
 
@@ -1580,26 +1467,6 @@ function ListValue.__init__(self, ...)
 	self.vallist = {}
 	self.size   = 1
 	self.widget = "select"
-end
-
-function ListValue.prepare(self, ...)
-	AbstractValue.prepare(self, ...)
-	if not self.override_scheme
-	 and self.map:get_scheme(self.section.sectiontype, self.option) then
-		local vs = self.map:get_scheme(self.section.sectiontype, self.option)
-		if self.value and vs.valuelist and not self.override_values then
-			for k, v in ipairs(vs.valuelist) do
-				local deps = {}
-				if not self.override_dependencies
-				 and vs.enum_depends and vs.enum_depends[v.value] then
-					for i, dep in ipairs(vs.enum_depends[v.value]) do
-						table.insert(deps, _uvl_strip_remote_dependencies(dep))
-					end
-				end
-				self:value(v.value, v.title or v.value, unpack(deps))
-			end
-		end
-	end
 end
 
 function ListValue.value(self, key, val, ...)
