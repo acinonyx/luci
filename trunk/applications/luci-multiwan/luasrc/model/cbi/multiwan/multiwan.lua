@@ -19,19 +19,6 @@ function e.cfgvalue(self, section)
         return (os.execute("/etc/init.d/multiwan enabled") == 0) and "1" or "0"
 end
 
-default_route = s:option(ListValue, "default_route", translate("Default Route"))
-luci.tools.webadmin.cbi_add_networks(default_route)
-default_route:value("balancer", translate("Load Balancer"))
-default_route.default = "balancer"
-default_route.optional = false
-default_route.rmempty = false
-
-resolv_conf = s:option(Value, "resolv_conf", translate("DNS Configuration File"),
-	translate("Writeable resolv file, dnsmasq defaults to /tmp/resolv.conf.auto"))
-resolv_conf.default = "/tmp/resolv.conf.auto"
-resolv_conf.optional = false
-resolv_conf.rmempty = false
-
 s = m:section(TypedSection, "interface", translate("WAN Interfaces"),
 	translate("Health Monitor detects and corrects network changes and failed connections."))
 s.addremove = true
@@ -108,10 +95,17 @@ recovery.rmempty = false
 failover_to = s:option(ListValue, "failover_to", translate("Failover Traffic Destination"))
 failover_to:value("disable", translate("None"))
 luci.tools.webadmin.cbi_add_networks(failover_to)
-failover_to:value("balancer", translate("Load Balancer"))
+failover_to:value("fastbalancer", translate("Load Balancer(Performance)"))
+failover_to:value("balancer", translate("Load Balancer(Compatibility)"))
 failover_to.default = "balancer"
 failover_to.optional = false
 failover_to.rmempty = false
+
+dns = s:option(Value, "dns", translate("DNS Server(s)"))
+dns:value("auto", translate("Auto"))
+dns.default = "auto"
+dns.optional = false
+dns.rmempty = true
 
 s = m:section(TypedSection, "mwanfw", translate("Multi-WAN Traffic Rules"),
 	translate("Configure rules for directing outbound traffic through specified WAN Uplinks."))
@@ -142,9 +136,21 @@ ports:value("", translate("all", translate("all")))
 
 wanrule = s:option(ListValue, "wanrule", translate("WAN Uplink"))
 luci.tools.webadmin.cbi_add_networks(wanrule)
-wanrule:value("balancer", translate("Load Balancer"))
-wanrule.default = "balancer"
+wanrule:value("fastbalancer", translate("Load Balancer(Performance)"))
+wanrule:value("balancer", translate("Load Balancer(Compatibility)"))
+wanrule.default = "fastbalancer"
 wanrule.optional = false
 wanrule.rmempty = false
+
+s = m:section(NamedSection, "config", "", "")
+s.addremove = false
+
+default_route = s:option(ListValue, "default_route", translate("Default Route"))
+luci.tools.webadmin.cbi_add_networks(default_route)
+default_route:value("fastbalancer", translate("Load Balancer(Performance)"))
+default_route:value("balancer", translate("Load Balancer(Compatibility)"))
+default_route.default = "balancer"
+default_route.optional = false
+default_route.rmempty = false
 
 return m
