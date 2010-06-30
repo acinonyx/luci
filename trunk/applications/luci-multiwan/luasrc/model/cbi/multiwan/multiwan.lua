@@ -123,7 +123,7 @@ dst.rmempty = true
 dst:value("", translate("all"))
 luci.tools.webadmin.cbi_add_knownips(dst)
 
-proto = s:option(ListValue, "proto", translate("Protocol"))
+proto = s:option(Value, "proto", translate("Protocol"))
 proto:value("", translate("all"))
 proto:value("tcp", "TCP")
 proto:value("udp", "UDP")
@@ -152,5 +152,10 @@ default_route:value("balancer", translate("Load Balancer(Compatibility)"))
 default_route.default = "balancer"
 default_route.optional = false
 default_route.rmempty = false
+
+lan_if = s:option(ListValue, "lan_if", translate("LAN Interface"))
+luci.tools.webadmin.cbi_add_networks(lan_if)
+lan_if.optional = false
+lan_if.rmempty = false
 
 return m
