@@ -84,6 +84,9 @@ msgstr ""
 msgid "<abbr title=\"Light Emitting Diode\">LED</abbr> Configuration"
 msgstr ""
 
+msgid "<abbr title=\"Light Emitting Diode\">LED</abbr> Name"
+msgstr ""
+
 msgid ""
 "<abbr title=\"Lua Configuration Interface\">LuCI</abbr> is a collection of "
 "free Lua software including an <abbr title=\"Model-View-Controller\">MVC</"
@@ -346,9 +349,6 @@ msgstr ""
 msgid "Connection timeout"
 msgstr ""
 
-msgid "Console Log Level"
-msgstr ""
-
 msgid "Contributing Developers"
 msgstr "开发贡献者"
 
@@ -382,6 +382,9 @@ msgid "DHCP assigned"
 msgstr "DHCP已分配节点"
 
 msgid "DHCP-Options"
+msgstr ""
+
+msgid "Default state"
 msgstr ""
 
 msgid "Delete"
@@ -498,6 +501,9 @@ msgid "Ethernet Switch"
 msgstr "以太交换机"
 
 msgid "Expand Hosts"
+msgstr ""
+
+msgid "External system log server"
 msgstr ""
 
 msgid "Fast Frames"
@@ -788,6 +794,9 @@ msgstr ""
 msgid "Localise queries"
 msgstr ""
 
+msgid "Log output level"
+msgstr ""
+
 msgid "Log queries"
 msgstr ""
 
@@ -796,9 +805,6 @@ msgstr "登录"
 
 msgid "Logout"
 msgstr "登出"
-
-msgid "Log Size"
-msgstr ""
 
 msgid "LuCI Components"
 msgstr ""
@@ -944,6 +950,12 @@ msgstr ""
 
 msgid "OPKG-Configuration"
 msgstr "OPKG包管理配置"
+
+msgid "Off-State Delay"
+msgstr ""
+
+msgid "On-State Delay"
+msgstr ""
 
 msgid ""
 "On the following pages you can adjust all important settings of your router."
@@ -1133,9 +1145,6 @@ msgstr "参考"
 msgid "Regulatory Domain"
 msgstr ""
 
-msgid "Remote Syslog IP"
-msgstr ""
-
 msgid "Remove"
 msgstr "移除"
 
@@ -1294,6 +1303,9 @@ msgstr "系统"
 msgid "System Log"
 msgstr "系统日志"
 
+msgid "System log buffer size"
+msgstr ""
+
 msgid "TFTP-Server Root"
 msgstr ""
 
@@ -1433,6 +1445,12 @@ msgid "Transmit Power"
 msgstr ""
 
 msgid "Transmitter Antenna"
+msgstr ""
+
+msgid "Trigger"
+msgstr ""
+
+msgid "Trigger Mode"
 msgstr ""
 
 msgid "Turbo Mode"
