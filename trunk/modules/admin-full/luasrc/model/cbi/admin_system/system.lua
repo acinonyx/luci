@@ -19,20 +19,13 @@ require("luci.fs")
 
 m = Map("system", translate("System"), translate("Here you can configure the basic aspects of your device like its hostname or the timezone."))
 
-function m.on_parse()
-	local has_rdate = false
+local has_rdate = false
 
-	m.uci:foreach("system", "rdate",
-		function()
-			has_rdate = true
-			return false
-		end)
-
-	if not has_rdate then
-		m.uci:section("system", "rdate", nil, { })
-		m.uci:save("system")
-	end
-end
+m.uci:foreach("system", "rdate",
+	function()
+		has_rdate = true
+		return false
+	end)
 
 
 s = m:section(TypedSection, "system", "")
@@ -96,13 +89,16 @@ end
 
 s:option(Value, "log_size", translate("System log buffer size"), "kiB").optional = true
 s:option(Value, "log_ip", translate("External system log server")).optional = true
+s:option(Value, "log_port", translate("External system log server port")).optional = true
 s:option(Value, "conloglevel", translate("Log output level")).optional = true
 s:option(Value, "cronloglevel", translate("Cron Log Level")).optional = true
 
-s2 = m:section(TypedSection, "rdate", translate("Time Server (rdate)"))
-s2.anonymous = true
-s2.addremove = false
+if has_rdate then
+	s2 = m:section(TypedSection, "rdate", translate("Time Server (rdate)"))
+	s2.anonymous = true
+	s2.addremove = false
 
-s2:option(DynamicList, "server", translate("Server"))
+	s2:option(DynamicList, "server", translate("Server"))
+end
 
 return m

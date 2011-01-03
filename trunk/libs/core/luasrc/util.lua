@@ -31,6 +31,7 @@ local debug = require "debug"
 local ldebug = require "luci.debug"
 local string = require "string"
 local coroutine = require "coroutine"
+local tparser = require "luci.template.parser"
 
 local getmetatable, setmetatable = getmetatable, setmetatable
 local rawget, rawset, unpack = rawget, rawset, unpack
@@ -193,25 +194,8 @@ end
 --- Create valid XML PCDATA from given string.
 -- @param value	String value containing the data to escape
 -- @return		String value containing the escaped data
-local function _pcdata_repl(c)
-	local i = string.byte(c)
-
-	if ( i >= 0x00 and i <= 0x08 ) or ( i >= 0x0B and i <= 0x0C ) or
-	   ( i >= 0x0E and i <= 0x1F ) or ( i == 0x7F )
-	then
-		return ""
-		
-	elseif ( i == 0x26 ) or ( i == 0x27 ) or ( i == 0x22 ) or
-	       ( i == 0x3C ) or ( i == 0x3E )
-	then
-		return string.format("&#%i;", i)
-	end
-
-	return c
-end
-
 function pcdata(value)
-	return value and tostring(value):gsub("[&\"'<>%c]", _pcdata_repl)
+	return value and tparser.sanitize_pcdata(tostring(value))
 end
 
 --- Strip HTML tags from given string.
@@ -280,6 +264,24 @@ function cmatch(str, pat)
 	local count = 0
 	for _ in str:gmatch(pat) do count = count + 1 end
 	return count
+end
+
+--- Return a matching iterator for the given value. The iterator will return
+-- one token per invocation, the tokens are separated by whitespace. If the
+-- input value is a table, it is transformed into a string first. A nil value
+-- will result in a valid interator which aborts with the first invocation.
+-- @param val		The value to scan (table, string or nil)
+-- @return			Iterator which returns one token per call
+function imatch(v)
+	if v == nil then
+		v = ""
+	elseif type(v) == "table" then
+		v = table.concat(v, " ")
+	elseif type(v) ~= "string" then
+		v = tostring(v)
+	end
+
+	return v:gmatch("%S+")
 end
 
 --- Parse certain units from the given string and return the canonical integer
@@ -771,19 +773,19 @@ function copcall(f, ...)
 end
 
 -- Handle return value of protected call
-function handleReturnValue(err, co, status, arg1, arg2, arg3, arg4, arg5)
+function handleReturnValue(err, co, status, ...)
 	if not status then
-		return false, err(debug.traceback(co, arg1), arg1, arg2, arg3, arg4, arg5)
+		return false, err(debug.traceback(co, (...)), ...)
 	end
 
 	if coroutine.status(co) ~= 'suspended' then
-		return true, arg1, arg2, arg3, arg4, arg5
+		return true, ...
 	end
 
-	return performResume(err, co, coroutine.yield(arg1, arg2, arg3, arg4, arg5))
+	return performResume(err, co, coroutine.yield(...))
 end
 
 -- Resume execution of protected function call
-function performResume(err, co, arg1, arg2, arg3, arg4, arg5)
-	return handleReturnValue(err, co, coroutine.resume(co, arg1, arg2, arg3, arg4, arg5))
+function performResume(err, co, ...)
+	return handleReturnValue(err, co, coroutine.resume(co, ...))
 end

@@ -52,11 +52,25 @@ local fi
 -- @return 		Relative URL
 function build_url(...)
 	local path = {...}
-	local sn = http.getenv("SCRIPT_NAME") or ""
+	local url = { http.getenv("SCRIPT_NAME") or "" }
+
+	local k, v
 	for k, v in pairs(context.urltoken) do
-		sn = sn .. "/;" .. k .. "=" .. http.urlencode(v)
+		url[#url+1] = "/;"
+		url[#url+1] = http.urlencode(k)
+		url[#url+1] = "="
+		url[#url+1] = http.urlencode(v)
 	end
-	return sn .. ((#path > 0) and "/" .. table.concat(path, "/") or "")
+
+	local p
+	for _, p in ipairs(path) do
+		if p:match("^[a-zA-Z0-9_%-%.%%/,;]+$") then
+			url[#url+1] = "/"
+			url[#url+1] = p
+		end
+	end
+
+	return table.concat(url, "")
 end
 
 --- Send a 404 error code and render the "error404" template if available.
@@ -181,7 +195,7 @@ function dispatch(request)
 	for i, s in ipairs(request) do
 		local tkey, tval
 		if t then
-			tkey, tval = s:match(";(%w+)=(.*)")
+			tkey, tval = s:match(";(%w+)=([a-fA-F0-9]*)")
 		end
 
 		if tkey then
@@ -237,6 +251,7 @@ function dispatch(request)
 		   write       = luci.http.write;
 		   include     = function(name) tpl.Template(name):render(getfenv(2)) end;
 		   translate   = function(...) return require("luci.i18n").translate(...) end;
+		   export      = function(k, v) if tpl.context.viewns[k] == nil then tpl.context.viewns[k] = v end end;
 		   striptags   = util.striptags;
 		   pcdata      = util.pcdata;
 		   media       = media;
@@ -442,16 +457,16 @@ function createindex_plain(path, suffixes)
 	index = {}
 
 	for i,c in ipairs(controllers) do
-		local module = "luci.controller." .. c:sub(#path+1, #c):gsub("/", ".")
+		local modname = "luci.controller." .. c:sub(#path+1, #c):gsub("/", ".")
 		for _, suffix in ipairs(suffixes) do
-			module = module:gsub(suffix.."$", "")
+			modname = modname:gsub(suffix.."$", "")
 		end
 
-		local mod = require(module)
+		local mod = require(modname)
 		local idx = mod.index
 
 		if type(idx) == "function" then
-			index[module] = idx
+			index[modname] = idx
 		end
 	end
 
@@ -703,19 +718,60 @@ local function _cbi(self, ...)
 		end
 	end
 
-	local pageaction = true
 	http.header("X-CBI-State", state or 0)
+
 	if not config.noheader then
 		tpl.render("cbi/header", {state = state})
 	end
+
+	local redirect
+	local messages
+	local applymap   = false
+	local pageaction = true
+	local parsechain = { }
+
 	for i, res in ipairs(maps) do
-		res:render()
+		if res.apply_needed and res.parsechain then
+			local c
+			for _, c in ipairs(res.parsechain) do
+				parsechain[#parsechain+1] = c
+			end
+			applymap = true
+		end
+
+		if res.redirect then
+			redirect = redirect or res.redirect
+		end
+
 		if res.pageaction == false then
 			pageaction = false
 		end
+
+		if res.message then
+			messages = messages or { }
+			messages[#messages+1] = res.message
+		end
 	end
+
+	for i, res in ipairs(maps) do
+		res:render({
+			firstmap   = (i == 1),
+			applymap   = applymap,
+			redirect   = redirect,
+			messages   = messages,
+			pageaction = pageaction,
+			parsechain = parsechain
+		})
+	end
+
 	if not config.nofooter then
-		tpl.render("cbi/footer", {flow = config, pageaction=pageaction, state = state, autoapply = config.autoapply})
+		tpl.render("cbi/footer", {
+			flow       = config,
+			pageaction = pageaction,
+			redirect   = redirect,
+			state      = state,
+			autoapply  = config.autoapply
+		})
 	end
 end
 

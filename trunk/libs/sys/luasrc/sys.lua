@@ -30,14 +30,14 @@ local os     = require "os"
 local table  = require "table"
 local nixio  = require "nixio"
 local fs     = require "nixio.fs"
-local iwinfo = require "iwinfo"
+local uci    = require "luci.model.uci"
 
 local luci  = {}
 luci.util   = require "luci.util"
 luci.ip     = require "luci.ip"
 
-local tonumber, ipairs, pairs, pcall, type, next, setmetatable =
-	tonumber, ipairs, pairs, pcall, type, next, setmetatable
+local tonumber, ipairs, pairs, pcall, type, next, setmetatable, require =
+	tonumber, ipairs, pairs, pcall, type, next, setmetatable, require
 
 
 --- LuCI Linux and POSIX system utilities.
@@ -58,20 +58,6 @@ end
 -- @param command	Command to call
 -- @return			String containg the return the output of the command
 exec = luci.util.exec
-
---- Invoke the luci-flash executable to write an image to the flash memory.
--- @param image		Local path or URL to image file
--- @param kpattern	Pattern of files to keep over flash process
--- @return			Return value of os.execute()
-function flash(image, kpattern)
-	local cmd = "luci-flash "
-	if kpattern then
-		cmd = cmd .. "-k '" .. kpattern:gsub("'", "") .. "' "
-	end
-	cmd = cmd .. "'" .. image:gsub("'", "") .. "' >/dev/null 2>&1"
-
-	return os.execute(cmd)
-end
 
 --- Retrieve information about currently mounted file systems.
 -- @return 	Table containing mount information
@@ -180,6 +166,7 @@ end
 -- @return	String containing the memory used for caching in kB
 -- @return	String containing the memory used for buffering in kB
 -- @return	String containing the free memory amount in kB
+-- @return	String containing the cpu bogomips (number)
 function sysinfo()
 	local cpuinfo = fs.readfile("/proc/cpuinfo")
 	local meminfo = fs.readfile("/proc/meminfo")
@@ -190,6 +177,7 @@ function sysinfo()
 	local memcached = tonumber(meminfo:match("\nCached:%s*(%d+)"))
 	local memfree = tonumber(meminfo:match("MemFree:%s*(%d+)"))
 	local membuffers = tonumber(meminfo:match("Buffers:%s*(%d+)"))
+	local bogomips = tonumber(cpuinfo:match("BogoMIPS.-:%s*([^\n]+)"))
 
 	if not system then
 		system = nixio.uname().machine
@@ -201,7 +189,7 @@ function sysinfo()
 		model = cpuinfo:match("cpu model.-:%s*([^\n]+)")
 	end
 
-	return system, model, memtotal, memcached, membuffers, memfree
+	return system, model, memtotal, memcached, membuffers, memfree, bogomips
 end
 
 --- Retrieves the output of the "logread" command.
@@ -584,14 +572,26 @@ user = {}
 --				{ "uid", "gid", "name", "passwd", "dir", "shell", "gecos" }
 user.getuser = nixio.getpw
 
+--- Retrieve the current user password hash.
+-- @param username	String containing the username to retrieve the password for
+-- @return			String containing the hash or nil if no password is set.
+function user.getpasswd(username)
+	local pwe = nixio.getsp and nixio.getsp(username) or nixio.getpw(username)
+	local pwh = pwe and (pwe.pwdp or pwe.passwd)
+	if not pwh or #pwh < 1 or pwh == "!" or pwh == "x" then
+		return nil
+	else
+		return pwh
+	end
+end
+
 --- Test whether given string matches the password of a given system user.
 -- @param username	String containing the Unix user name
 -- @param pass		String containing the password to compare
 -- @return			Boolean indicating wheather the passwords are equal
 function user.checkpasswd(username, pass)
-	local pwe = nixio.getsp and nixio.getsp(username) or nixio.getpw(username)
-	local pwh = pwe and (pwe.pwdp or pwe.passwd)
-	if not pwh or #pwh < 1 or pwh ~= "!" and nixio.crypt(pass, pwh) ~= pwh then
+	local pwh = user.getpasswd(username)
+	if pwh and nixio.crypt(pass, pwh) ~= pwh then
 		return false
 	else
 		return true
@@ -626,12 +626,43 @@ wifi = {}
 -- @param ifname        String containing the interface name
 -- @return              A wrapped iwinfo object instance
 function wifi.getiwinfo(ifname)
-	local t = iwinfo.type(ifname)
-	if t then
-		local x = iwinfo[t]
+	local stat, iwinfo = pcall(require, "iwinfo")
+
+	if ifname then
+		local c = 0
+		local u = uci.cursor_state()
+		local d, n = ifname:match("^(%w+)%.network(%d+)")
+		if d and n then
+			n = tonumber(n)
+			u:foreach("wireless", "wifi-iface",
+				function(s)
+					if s.device == d then
+						c = c + 1
+						if c == n then
+							ifname = s.ifname or s.device
+							return false
+						end
+					end
+				end)
+		elseif u:get("wireless", ifname) == "wifi-device" then
+			u:foreach("wireless", "wifi-iface",
+				function(s)
+					if s.device == ifname and s.ifname then
+						ifname = s.ifname
+						return false
+					end
+				end)
+		end
+
+		local t = stat and iwinfo.type(ifname)
+		local x = t and iwinfo[t] or { }
 		return setmetatable({}, {
 			__index = function(t, k)
-				if x[k] then return x[k](ifname) end
+				if k == "ifname" then
+					return ifname
+				elseif x[k] then
+					return x[k](ifname)
+				end
 			end
 		})
 	end
@@ -693,7 +724,7 @@ end
 function wifi.channels(iface)
 	local t = iwinfo.type(iface or "")
 	local cns
-	if t and iwinfo[t] then
+	if iface and t and iwinfo[t] then
 		cns = iwinfo[t].freqlist(iface)
 	end
 

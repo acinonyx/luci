@@ -88,33 +88,59 @@ msgstr ""
 msgid "Memory"
 msgstr ""
 
-#. Free
-#: modules/freifunk/luasrc/i18n/freifunk.en.lua:17
-msgid "Free"
-msgstr ""
-
-#. Buffers
-#: modules/freifunk/luasrc/i18n/freifunk.en.lua:18
-msgid "Buffers"
-msgstr ""
-
-#. Cached
-#: modules/freifunk/luasrc/i18n/freifunk.en.lua:19
-msgid "Cached"
-msgstr ""
-
-#. Total
-#: modules/freifunk/luasrc/i18n/freifunk.en.lua:20
-msgid "Total"
-msgstr ""
-
 #. Coordinates
 #: modules/freifunk/luasrc/i18n/freifunk.en.lua:21
 msgid "Coordinates"
 msgstr ""
 
+#. Latitude
+msgid "Latitude"
+msgstr ""
+
+#. Longitude
+msgid "Longitude"
+msgstr ""
+
 #. Client-Splash
 msgid "Client-Splash"
+msgstr ""
+
+#. Splash text edit description
+msgid ""
+"You can change the text that is displayed to clients here.<br /> It is "
+"possible to use the following markers: ###COMMUNITY###, ###COMMUNITY_URL###, "
+"###LEASETIME### and ###ACCEPT###.<br />Click here to <a href='/luci/"
+"splash/'>test the splash page</a> after you saved it."
+msgstr ""
+
+#. Splash text edit header
+msgid "Edit Splash text"
+msgstr ""
+
+#. Accept
+msgid "Accept"
+msgstr ""
+
+#. Decline
+msgid "Decline"
+msgstr ""
+
+#. Services error
+msgid ""
+"No services can be shown, because olsrd is not running or the olsrd-"
+"nameservice Plugin is not loaded."
+msgstr ""
+
+#. Services
+msgid "Services"
+msgstr ""
+
+#. Url
+msgid "Url"
+msgstr ""
+
+#. Source
+msgid "Source"
 msgstr ""
 
 #. Active Clients
@@ -245,4 +271,55 @@ msgstr ""
 
 #. Confirm Upgrade
 msgid "Confirm Upgrade"
+msgstr ""
+
+#. Edit index page
+msgid "Edit index page"
+msgstr ""
+
+#. You can display additional content on the public index page by inserting valid XHTML in the form below.<br />Headlines should be enclosed between &lt;h2&gt; and &lt;/h2&gt;.
+msgid ""
+"You can display additional content on the public index page by inserting "
+"valid XHTML in the form below.<br />Headlines should be enclosed between &lt;"
+"h2&gt; and &lt;/h2&gt;."
+msgstr ""
+
+#. Disable default content
+msgid "Disable default content"
+msgstr ""
+
+#. If checked then the default content element is not shown.
+msgid "If checked then the default content element is not shown."
+msgstr ""
+
+#. Contact
+msgid "Contact"
+msgstr ""
+
+#. Please fill in your contact details below.
+msgid "Please fill in your contact details below."
+msgstr ""
+
+#. Default routes
+msgid "Default routes"
+msgstr ""
+
+#. No defaultroutes known.
+msgid "No default routes known."
+msgstr ""
+
+#. Neighbors
+msgid "Neighbors"
+msgstr ""
+
+#. Links total
+msgid "Links total"
+msgstr ""
+
+#. Links per node (average)
+msgid "Links per node (average)"
+msgstr ""
+
+#. Download Config
+msgid "Download Config"
 msgstr ""
