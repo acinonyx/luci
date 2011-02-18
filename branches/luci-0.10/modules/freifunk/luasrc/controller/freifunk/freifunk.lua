@@ -17,6 +17,7 @@ function index()
 	local i18n = luci.i18n.translate
 	local uci = require "luci.model.uci".cursor()
 
+	-- Frontend
 	local page  = node()
 	page.lock   = true
 	page.target = alias("freifunk")
@@ -24,7 +25,7 @@ function index()
 	page.index = false
 
 	local page    = node("freifunk")
-	page.title    = "Freifunk"
+	page.title    = i18n("Freifunk")
 	page.target   = alias("freifunk", "index")
 	page.order    = 5
 	page.setuser  = "nobody"
@@ -34,13 +35,14 @@ function index()
 
 	local page  = node("freifunk", "index")
 	page.target = template("freifunk/index")
-	page.title  = "Übersicht"
+	page.title  = i18n("Overview")
 	page.order  = 10
 	page.indexignore = true
 
 	local page  = node("freifunk", "index", "contact")
 	page.target = template("freifunk/contact")
-	page.title  = "Kontakt"
+	page.title  = i18n("Contact")
+	page.order    = 10
 
 	local page  = node("freifunk", "status")
 	page.target = template("freifunk/public_status")
@@ -54,41 +56,48 @@ function index()
 	entry({"freifunk", "status", "zeroes"}, call("zeroes"), "Testdownload")
 	entry({"freifunk", "status", "public_status_json"}, call("public_status_json")).leaf = true
 
-	assign({"freifunk", "olsr"}, {"admin", "status", "olsr"}, "OLSR", 30)
+	assign({"freifunk", "olsr"}, {"admin", "status", "olsr"}, i18n("OLSR"), 30)
 
 	if nixio.fs.access("/etc/config/luci_statistics") then
 		assign({"freifunk", "graph"}, {"admin", "statistics", "graph"}, i18n("Statistics"), 40)
 	end
 
-	assign({"mini", "freifunk"}, {"admin", "freifunk"}, "Freifunk", 15)
-	entry({"admin", "freifunk"}, alias("admin", "freifunk", "index"), "Freifunk", 15)
-	local page  = node("admin", "freifunk", "index")
-	page.target = cbi("freifunk/freifunk")
-	page.title  = "Freifunk"
-	page.order  = 30
+	-- backend
+	assign({"mini", "freifunk"}, {"admin", "freifunk"}, i18n("Freifunk"), 5)
+	entry({"admin", "freifunk"}, alias("admin", "freifunk", "index"), i18n("Freifunk"), 5)
+
+	local page  = node("admin", "freifunk")
+	page.target = template("freifunk/adminindex")
+	page.title  = i18n("Freifunk")
+	page.order  = 5
+
+	local page  = node("admin", "freifunk", "basics")
+	page.target = cbi("freifunk/basics")
+	page.title  = i18n("Basic Settings")
+	page.order  = 5
+	
+	local page  = node("admin", "freifunk", "basics", "profile")
+	page.target = cbi("freifunk/profile")
+	page.title  = i18n("Profile")
+	page.order  = 10
+
+	local page  = node("admin", "freifunk", "basics", "profile_expert")
+	page.target = cbi("freifunk/profile_expert")
+	page.title  = i18n("Profile (Expert)")
+	page.order  = 20
 
 	local page  = node("admin", "freifunk", "Index-Page")
 	page.target = cbi("freifunk/user_index")
-	page.title  = "Index-Page"
-	page.order  = 35
+	page.title  = i18n("Index Page")
+	page.order  = 50
 
 	local page  = node("admin", "freifunk", "contact")
 	page.target = cbi("freifunk/contact")
-	page.title  = "Kontakt"
-	page.order  = 40
+	page.title  = i18n("Contact")
+	page.order  = 15
 
-	entry({"freifunk", "map"}, template("freifunk-map/frame"), i18n("Karte"), 50)
+	entry({"freifunk", "map"}, template("freifunk-map/frame"), i18n("Map"), 50)
 	entry({"freifunk", "map", "content"}, template("freifunk-map/map"), nil, 51)
-
-	uci:foreach("olsrd", "LoadPlugin", function(s)
-		if s.library == "olsrd_nameservice.so.0.3" then
-			has_serv = true
-		end
-	end)
-
-	if has_serv then
-		entry({"freifunk", "services"}, template("freifunk-services/services"), i18n("Services"), 60)
-	end
 end
 
 local function fetch_olsrd()
@@ -296,4 +305,3 @@ function public_status_json()
 	luci.http.write_json(rv)
 	return
 end
-

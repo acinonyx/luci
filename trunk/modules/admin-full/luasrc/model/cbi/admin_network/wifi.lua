@@ -17,7 +17,6 @@ local nw = require "luci.model.network"
 local fs = require "nixio.fs"
 
 arg[1] = arg[1] or ""
-arg[2] = arg[2] or ""
 
 m = Map("wireless", "",
 	translate("The <em>Device Configuration</em> section covers physical settings of the radio " ..
@@ -30,32 +29,36 @@ m:chain("network")
 local ifsection
 
 function m.on_commit(map)
-	local wnet = nw:get_wifinet(arg[2])
+	local wnet = nw:get_wifinet(arg[1])
 	if ifsection and wnet then
 		ifsection.section = wnet.sid
-		m.title = wnet:get_i18n()
+		m.title = luci.util.pcdata(wnet:get_i18n())
 	end
 end
 
 nw.init(m.uci)
 
-local wnet = nw:get_wifinet(arg[2])
+local wnet = nw:get_wifinet(arg[1])
+local wdev = wnet and wnet:get_device()
 
 -- redirect to overview page if network does not exist anymore (e.g. after a revert)
-if not wnet then
+if not wnet or not wdev then
 	luci.http.redirect(luci.dispatcher.build_url("admin/network/wireless"))
 	return
 end
 
-m.title = wnet:get_i18n()
+m.title = luci.util.pcdata(wnet:get_i18n())
 
 
 local iw = luci.sys.wifi.getiwinfo(arg[1])
-local tx_powers = iw.txpwrlist  or { }
 local hw_modes  = iw.hwmodelist or { }
+local tx_powers = iw.txpwrlist  or { }
+local tx_power  = tostring(
+	(iw.txpower and iw.txpower > 0 and iw.txpower) or
+	(#tx_powers > 0 and tx_powers[#tx_powers].dbm)
+)
 
-
-s = m:section(NamedSection, arg[1], "wifi-device", translate("Device Configuration"))
+s = m:section(NamedSection, wdev:name(), "wifi-device", translate("Device Configuration"))
 s.addremove = false
 
 s:tab("general", translate("General Setup"))
@@ -70,7 +73,7 @@ back.titleref = luci.dispatcher.build_url("admin", "network", "wireless")
 
 st = s:taboption("general", DummyValue, "__status", translate("Status"))
 st.template = "admin_network/wifi_status"
-st.ifname   = arg[2]
+st.ifname   = arg[1]
 
 en = s:taboption("general", Flag, "disabled", translate("Enable device"))
 en.enabled = "0"
@@ -82,11 +85,11 @@ function en.cfgvalue(self, section)
 end
 
 
-local hwtype = m:get(arg[1], "type")
-local htcaps = m:get(arg[1], "ht_capab") and true or false
+local hwtype = wdev:get("type")
+local htcaps = wdev:get("ht_capab") and true or false
 
 -- NanoFoo
-local nsantenna = m:get(arg[1], "antenna")
+local nsantenna = wdev:get("antenna")
 
 ch = s:taboption("general", Value, "channel", translate("Channel"))
 ch:value("auto", translate("auto"))
@@ -105,7 +108,7 @@ if hwtype == "mac80211" then
 		"txpower", translate("Transmit Power"), "dBm")
 
 	tp.rmempty = true
-	tp.default = tostring(iw and iw.txpower or tx_powers[#tx_powers])
+	tp.default = tx_power
 	for _, p in ipairs(tx_powers or {}) do
 		tp:value(p.dbm, "%i dBm (%i mW)" %{ p.dbm, p.mw })
 	end
@@ -156,7 +159,8 @@ if hwtype == "atheros" then
 		"txpower", translate("Transmit Power"), "dBm")
 
 	tp.rmempty = true
-	for _, p in ipairs(iw.txpwrlist) do
+	tp.default = tx_power
+	for _, p in ipairs(tx_powers or {}) do
 		tp:value(p.dbm, "%i dBm (%i mW)" %{ p.dbm, p.mw })
 	end
 
@@ -216,7 +220,8 @@ if hwtype == "broadcom" then
 		"txpower", translate("Transmit Power"), "dBm")
 
 	tp.rmempty = true
-	for _, p in ipairs(iw.txpwrlist) do
+	tp.default = tx_power
+	for _, p in ipairs(tx_powers or {}) do
 		tp:value(p.dbm, "%i dBm (%i mW)" %{ p.dbm, p.mw })
 	end
 
@@ -276,7 +281,7 @@ s = m:section(NamedSection, wnet.sid, "wifi-iface", translate("Interface Configu
 ifsection = s
 s.addremove = false
 s.anonymous = true
-s.defaults.device = arg[1]
+s.defaults.device = wdev:name()
 
 s:tab("general", translate("General Setup"))
 s:tab("encryption", translate("Wireless Security"))
@@ -317,7 +322,7 @@ function network.write(self, section, value)
 		else
 			local n = nw:get_network(value)
 			if n then
-				n:type("bridge")
+				n:set("type", "bridge")
 				n:add_interface(i)
 			end
 		end
@@ -633,7 +638,7 @@ wepslot.cfgvalue = function(self, section)
 	if not slot or slot < 1 or slot > 4 then
 		return 1
 	end
-	return slot		
+	return slot
 end
 
 wepslot.write = function(self, section, value)
@@ -648,7 +653,7 @@ for slot=1,4 do
 	wepkey.datatype = "wepkey"
 	wepkey.rmempty = true
 	wepkey.password = true
-	
+
 	function wepkey.write(self, section, value)
 		if value and (#value == 5 or #value == 13) then
 			value = "s:" .. value

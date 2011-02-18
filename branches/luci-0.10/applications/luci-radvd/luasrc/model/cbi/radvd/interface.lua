@@ -13,6 +13,7 @@ $Id$
 ]]--
 
 local sid = arg[1]
+local utl = require "luci.util"
 
 m = Map("radvd", translatef("Radvd - Interface %q", "?"),
 	translate("Radvd is a router advertisement daemon for IPv6. " ..
@@ -47,6 +48,19 @@ s:tab("mobile",  translate("Mobile IPv6"))
 -- General
 --
 
+o = s:taboption("general", Flag, "ignore", translate("Enable"))
+o.rmempty = false
+
+function o.cfgvalue(...)
+	local v = Flag.cfgvalue(...)
+	return v == "1" and "0" or "1"
+end
+
+function o.write(self, section, value)
+	Flag.write(self, section, value == "1" and "0" or "1")
+end
+
+
 o = s:taboption("general", Value, "interface", translate("Interface"),
 	translate("Specifies the logical interface name this section belongs to"))
 
@@ -68,6 +82,22 @@ end
 function o.write(self, section, value)
 	m.uci:set("radvd", section, "ignore", 0)
 	m.uci:set("radvd", section, "interface", value)
+end
+
+
+o = s:taboption("general", DynamicList, "client", translate("Clients"),
+	translate("Restrict communication to specified clients, leave empty to use multicast"))
+
+o.rmempty     = true
+o.datatype    = "ip6addr"
+o.placeholder = "any"
+function o.cfgvalue(...)
+	local v = Value.cfgvalue(...)
+	local l = { }
+	for v in utl.imatch(v) do
+		l[#l+1] = v
+	end
+	return l
 end
 
 

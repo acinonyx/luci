@@ -66,7 +66,7 @@ proto:value("icmp", "ICMP")
 
 icmpt = s:taboption("general", Value, "icmp_type", translate("Match ICMP type"))
 icmpt:depends("proto", "icmp")
-icmpt:value("any")
+icmpt:value("", "any")
 icmpt:value("echo-reply")
 icmpt:value("destination-unreachable")
 icmpt:value("network-unreachable")
@@ -136,6 +136,7 @@ jump.default = "ACCEPT"
 jump:value("DROP", translate("drop"))
 jump:value("ACCEPT", translate("accept"))
 jump:value("REJECT", translate("reject"))
+jump:value("NOTRACK", translate("don't track"))
 
 
 smac = s:taboption("advanced", Value, "src_mac", translate("Source MAC address"))
