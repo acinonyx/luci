@@ -356,6 +356,7 @@ static inline int nl80211_wpactl_recv(int sock, char *buf, int blen)
 static char * nl80211_wpactl_info(const char *ifname, const char *cmd,
 								   const char *event)
 {
+	int numtry = 0;
 	int sock = -1;
 	char *rv = NULL;
 	size_t remote_length, local_length;
@@ -395,7 +396,7 @@ static char * nl80211_wpactl_info(const char *ifname, const char *cmd,
 
 	send(sock, cmd, strlen(cmd), 0);
 
-	while( 1 )
+	while( numtry++ < 5 )
 	{
 		if( nl80211_wpactl_recv(sock, buffer, sizeof(buffer)) <= 0 )
 		{
@@ -1169,7 +1170,7 @@ int nl80211_get_txpwrlist(const char *ifname, char *buf, int *len)
 	{
 		for( dbm_cur = 0, dbm_cnt = 0;
 		     dbm_cur < dbm_max;
-		     dbm_cur += 2, dbm_cnt++ )
+		     dbm_cur++, dbm_cnt++ )
 		{
 			entry.dbm = dbm_cur;
 			entry.mw  = iwinfo_dbm2mw(dbm_cur);

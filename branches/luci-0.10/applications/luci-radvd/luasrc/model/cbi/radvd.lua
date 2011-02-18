@@ -18,6 +18,7 @@ m = Map("radvd", translate("Radvd"),
 		"as described in RFC 4861."))
 
 local nm = require "luci.model.network".init(m.uci)
+local ut = require "luci.util"
 
 
 --
@@ -53,14 +54,26 @@ function s.remove(self, section)
 	return TypedSection.remove(self, section)
 end
 
+o = s:option(Flag, "ignore", translate("Enable"))
+o.rmempty = false
+o.width   = "30px"
+function o.cfgvalue(...)
+	local v = Flag.cfgvalue(...)
+	return v == "1" and "0" or "1"
+end
+function o.write(self, section, value)
+	Flag.write(self, section, value == "1" and "0" or "1")
+end
 
 o = s:option(DummyValue, "interface", translate("Interface"))
 o.template = "cbi/network_netinfo"
+o.width    = "10%"
 
 o = s:option(DummyValue, "UnicastOnly", translate("Multicast"))
-function o.cfgvalue(...)
-	local v = Value.cfgvalue(...)
-	return v == "1" and translate("no") or translate("yes")
+function o.cfgvalue(self, section)
+	local v  = Value.cfgvalue(self, section)
+	local v2 = m.uci:get("radvd", section, "client")
+	return (v == "1" or (v2 and #v2 > 0)) and translate("no") or translate("yes")
 end
 
 o = s:option(DummyValue, "AdvSendAdvert", translate("Advertising"))
@@ -104,12 +117,27 @@ function s2.create(...)
 end
 
 
+o = s2:option(Flag, "ignore", translate("Enable"))
+o.rmempty = false
+o.width   = "30px"
+function o.cfgvalue(...)
+	local v = Flag.cfgvalue(...)
+	return v == "1" and "0" or "1"
+end
+function o.write(self, section, value)
+	Flag.write(self, section, value == "1" and "0" or "1")
+end
+
 o = s2:option(DummyValue, "interface", translate("Interface"))
 o.template = "cbi/network_netinfo"
+o.width    = "10%"
 
 o = s2:option(DummyValue, "prefix", translate("Prefix"))
+o.width = "60%"
 function o.cfgvalue(self, section)
-	local v = Value.cfgvalue(self, section)
+	local v = m.uci:get_list("radvd", section, "prefix")
+	local l = { }
+
 	if not v then
 		local net = nm:get_network(m.uci:get("radvd", section, "interface"))
 		if net then
@@ -125,12 +153,20 @@ function o.cfgvalue(self, section)
 				end
 			end
 		end
-	else
-		v = luci.ip.IPv6(v)
-		v = v and v:string()
 	end
 
-	return v or "?"
+	for v in ut.imatch(v) do
+		v = luci.ip.IPv6(v)
+		if v then
+			l[#l+1] = v:string()
+		end
+	end
+
+	if #l == 0 then
+		l[1] = "?"
+	end
+
+	return table.concat(l, ", ")
 end
 
 o = s2:option(DummyValue, "AdvAutonomous", translate("Autonomous"))
@@ -168,17 +204,40 @@ function s3.create(...)
 end
 
 
+o = s3:option(Flag, "ignore", translate("Enable"))
+o.rmempty = false
+o.width   = "30px"
+function o.cfgvalue(...)
+	local v = Flag.cfgvalue(...)
+	return v == "1" and "0" or "1"
+end
+function o.write(self, section, value)
+	Flag.write(self, section, value == "1" and "0" or "1")
+end
+
 o = s3:option(DummyValue, "interface", translate("Interface"))
 o.template = "cbi/network_netinfo"
+o.width    = "10%"
 
 o = s3:option(DummyValue, "prefix", translate("Prefix"))
+o.width = "60%"
 function o.cfgvalue(self, section)
-	local v = Value.cfgvalue(self, section)
+	local v = m.uci:get_list("radvd", section, "prefix")
+	local l = { }
 	if v then
-		v = luci.ip.IPv6(v)
-		v = v and v:string()
+		for v in ut.imatch(v) do
+			v = luci.ip.IPv6(v)
+			if v then
+				l[#l+1] = v:string()
+			end
+		end
 	end
-	return v or "?"
+
+	if #l == 0 then
+		l[1] = "?"
+	end
+
+	return table.concat(l, ", ")
 end
 
 o = s3:option(DummyValue, "AdvRouteLifetime", translate("Lifetime"))
@@ -204,18 +263,32 @@ s4.extedit  = luci.dispatcher.build_url("admin/network/radvd/rdnss/%s")
 s4.addremove = true
 s4.anonymous = true
 
-function s.create(...)
+function s4.create(...)
 	local id = TypedSection.create(...)
 	luci.http.redirect(s4.extedit % id)
 end
 
 
+o = s4:option(Flag, "ignore", translate("Enable"))
+o.rmempty = false
+o.width   = "30px"
+function o.cfgvalue(...)
+	local v = Flag.cfgvalue(...)
+	return v == "1" and "0" or "1"
+end
+function o.write(self, section, value)
+	Flag.write(self, section, value == "1" and "0" or "1")
+end
+
 o = s4:option(DummyValue, "interface", translate("Interface"))
 o.template = "cbi/network_netinfo"
+o.width    = "10%"
 
 o = s4:option(DummyValue, "addr", translate("Address"))
+o.width = "60%"
 function o.cfgvalue(self, section)
-	local v = Value.cfgvalue(self, section)
+	local v = m.uci:get_list("radvd", section, "addr")
+	local l = { }
 	if not v then
 		local net = nm:get_network(m.uci:get("radvd", section, "interface"))
 		if net then
@@ -231,21 +304,78 @@ function o.cfgvalue(self, section)
 				end
 			end
 		end
-	else
-		v = luci.ip.IPv6(v)
-		v = v and v:network(128):string()
 	end
 
-	return v or "?"
-end
+	for v in ut.imatch(v) do
+		v = luci.ip.IPv6(v)
+		if v then
+			l[#l+1] = v:network(128):string()
+		end
+	end
 
-o = s4:option(DummyValue, "AdvRDNSSOpen", translate("Open"))
-function o.cfgvalue(self, section)
-	local v = Value.cfgvalue(self, section)
-	return v == "1" and translate("yes") or translate("no")
+	if #l == 0 then
+		l[1] = "?"
+	end
+
+	return table.concat(l, ", ")
 end
 
 o = s4:option(DummyValue, "AdvRDNSSLifetime", translate("Lifetime"))
+function o.cfgvalue(self, section)
+	local v = Value.cfgvalue(self, section) or "1200"
+	return translate(v)
+end
+
+
+--
+-- DNSSL
+--
+
+s5 = m:section(TypedSection, "dnssl", translate("DNSSL"))
+s5.template = "cbi/tblsection"
+s5.extedit  = luci.dispatcher.build_url("admin/network/radvd/dnssl/%s")
+s5.addremove = true
+s5.anonymous = true
+
+function s5.create(...)
+	local id = TypedSection.create(...)
+	luci.http.redirect(s5.extedit % id)
+end
+
+
+o = s5:option(Flag, "ignore", translate("Enable"))
+o.rmempty = false
+o.width   = "30px"
+function o.cfgvalue(...)
+	local v = Flag.cfgvalue(...)
+	return v == "1" and "0" or "1"
+end
+function o.write(self, section, value)
+	Flag.write(self, section, value == "1" and "0" or "1")
+end
+
+o = s5:option(DummyValue, "interface", translate("Interface"))
+o.template = "cbi/network_netinfo"
+o.width    = "10%"
+
+o = s5:option(DummyValue, "suffix", translate("Suffix"))
+o.width = "60%"
+function o.cfgvalue(self, section)
+	local v = m.uci:get_list("radvd", section, "suffix")
+	local l = { }
+
+	for v in ut.imatch(v) do
+		l[#l+1] = v
+	end
+
+	if #l == 0 then
+		l[1] = "?"
+	end
+
+	return table.concat(l, ", ")
+end
+
+o = s5:option(DummyValue, "AdvDNSSLLifetime", translate("Lifetime"))
 function o.cfgvalue(self, section)
 	local v = Value.cfgvalue(self, section) or "1200"
 	return translate(v)

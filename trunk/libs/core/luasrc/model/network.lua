@@ -242,10 +242,19 @@ function has_ipv6(self)
 end
 
 function add_network(self, n, options)
-	if n and #n > 0 and n:match("^[a-zA-Z0-9_]+$") and not self:get_network(n) then
+	local oldnet = self:get_network(n)
+	if n and #n > 0 and n:match("^[a-zA-Z0-9_]+$") and not oldnet then
 		if uci_r:section("network", "interface", n, options) then
 			return network(n)
 		end
+	elseif oldnet and oldnet:is_empty() then
+		if options then
+			local k, v
+			for k, v in pairs(options) do
+				oldnet:set(k, v)
+			end
+		end
+		return oldnet
 	end
 end
 
@@ -466,6 +475,24 @@ function network._get(self, opt)
 	return v or ""
 end
 
+function network._ip(self, opt, family, list)
+	local ip = uci_s:get("network", self.sid, opt)
+	local fc = (family == 6) and ipc.IPv6 or ipc.IPv4
+	if ip then
+		if list then
+			local l = { }
+			for ip in utl.imatch(ip) do
+				ip = fc(ip)
+				if ip then l[#l+1] = ip:string() end
+			end
+			return l
+		else
+			ip = fc(ip)
+			return ip and ip:string()
+		end
+	end
+end
+
 function network.get(self, opt)
 	return _get("network", self.sid, opt)
 end
@@ -542,6 +569,68 @@ function network.uptime(self)
 	else
 		return 0
 	end
+end
+
+function network.expires(self)
+	local a = tonumber(uci_s:get("network", self.sid, "lease_acquired"))
+	local l = tonumber(uci_s:get("network", self.sid, "lease_lifetime"))
+	if a and l then
+		l = l - (nxo.sysinfo().uptime - a)
+		return l > 0 and l or 0
+	end
+	return -1
+end
+
+function network.metric(self)
+	return tonumber(uci_s:get("network", self.sid, "metric")) or 0
+end
+
+function network.ipaddr(self)
+	return self:_ip("ipaddr", 4)
+end
+
+function network.netmask(self)
+	return self:_ip("netmask", 4)
+end
+
+function network.gwaddr(self)
+	return self:_ip("gateway", 4)
+end
+
+function network.dnsaddrs(self)
+	return self:_ip("dns", 4, true)
+end
+
+function network.ip6addr(self)
+	local ip6 = self:_ip("ip6addr", 6)
+	if not ip6 then
+		local ifc = ifs[self:ifname()]
+		if ifc and ifc.ip6addrs then
+			local a
+			for _, a in ipairs(ifc.ip6addrs) do
+				if not a:is6linklocal() then
+					ip6 = a:string()
+					break
+				end
+			end
+		end
+	end
+	return ip6
+end
+
+function network.gw6addr(self)
+	local ip6 = self:_ip("ip6gw", 6)
+	if not ip6 then
+		local dr6 = sys.net.defaultroute6()
+		if dr6 and dr6.device == self:ifname() then
+			return dr6.nexthop:string()
+		end
+	end
+	return ip6
+end
+
+function network.dns6addrs(self)
+	return self:_ip("dns", 6, true)
 end
 
 function network.is_bridge(self)
@@ -843,7 +932,9 @@ function interface.get_network(self)
 	if not self.network then
 		local net
 		for _, net in ipairs(_M:get_networks()) do
-			if net:contains_interface(self.ifname) then
+			if net:contains_interface(self.ifname) or
+			   net:ifname() == self.ifname
+			then
 				self.network = net
 				return net
 			end
@@ -1016,7 +1107,7 @@ end
 function wifinet.active_mode(self)
 	local m = _stror(self.iwinfo.mode, self.iwdata.mode) or "ap"
 
-	if     m == "ap"      then m = "AP"
+	if     m == "ap"      then m = "Master"
 	elseif m == "sta"     then m = "Client"
 	elseif m == "adhoc"   then m = "Ad-Hoc"
 	elseif m == "mesh"    then m = "Mesh"
@@ -1118,8 +1209,7 @@ function wifinet.get_i18n(self)
 end
 
 function wifinet.adminlink(self)
-	return dsp.build_url("admin", "network", "wireless",
-		self.iwdata.device, self.netid)
+	return dsp.build_url("admin", "network", "wireless", self.netid)
 end
 
 function wifinet.get_network(self)

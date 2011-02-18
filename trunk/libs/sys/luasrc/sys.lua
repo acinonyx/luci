@@ -171,23 +171,23 @@ function sysinfo()
 	local cpuinfo = fs.readfile("/proc/cpuinfo")
 	local meminfo = fs.readfile("/proc/meminfo")
 
-	local system = cpuinfo:match("system typ.-:%s*([^\n]+)")
-	local model = ""
 	local memtotal = tonumber(meminfo:match("MemTotal:%s*(%d+)"))
 	local memcached = tonumber(meminfo:match("\nCached:%s*(%d+)"))
 	local memfree = tonumber(meminfo:match("MemFree:%s*(%d+)"))
 	local membuffers = tonumber(meminfo:match("Buffers:%s*(%d+)"))
-	local bogomips = tonumber(cpuinfo:match("BogoMIPS.-:%s*([^\n]+)"))
+	local bogomips = tonumber(cpuinfo:match("[Bb]ogo[Mm][Ii][Pp][Ss].-: ([^\n]+)")) or 0
 
-	if not system then
-		system = nixio.uname().machine
-		model = cpuinfo:match("model name.-:%s*([^\n]+)")
-		if not model then
-			model = cpuinfo:match("Processor.-:%s*([^\n]+)")
-		end
-	else
-		model = cpuinfo:match("cpu model.-:%s*([^\n]+)")
-	end
+	local system =
+		cpuinfo:match("system type\t+: ([^\n]+)") or
+		cpuinfo:match("Processor\t+: ([^\n]+)") or
+		cpuinfo:match("model name\t+: ([^\n]+)")
+
+	local model =
+		cpuinfo:match("machine\t+: ([^\n]+)") or
+		cpuinfo:match("Hardware\t+: ([^\n]+)") or
+		luci.util.pcdata(fs.readfile("/proc/diag/model")) or
+		nixio.uname().machine or
+		system
 
 	return system, model, memtotal, memcached, membuffers, memfree, bogomips
 end
@@ -306,6 +306,17 @@ function net.defaultroute6()
 			route = rt
 		end
 	end)
+
+	if not route then
+		local global_unicast = luci.ip.IPv6("2000::/3")
+		net.routes6(function(rt)
+			if rt.dest:equal(global_unicast) and
+			   (not route or route.metric > rt.metric)
+			then
+				route = rt
+			end
+		end)
+	end
 
 	return route
 end
@@ -604,16 +615,17 @@ end
 -- @return			Number containing 0 on success and >= 1 on error
 function user.setpasswd(username, password)
 	if password then
-		password = password:gsub("'", "")
+		password = password:gsub("'", [['"'"']])
 	end
 
 	if username then
-		username = username:gsub("'", "")
+		username = username:gsub("'", [['"'"']])
 	end
 
-	local cmd = "(echo '"..password.."';sleep 1;echo '"..password.."')|"
-	cmd = cmd .. "passwd '"..username.."' >/dev/null 2>&1"
-	return os.execute(cmd)
+	return os.execute(
+		"(echo '" .. password .. "'; sleep 1; echo '" .. password .. "') | " ..
+		"passwd '" .. username .. "' >/dev/null 2>&1"
+	)
 end
 
 
@@ -722,10 +734,14 @@ end
 -- @param iface	Wireless interface (optional)
 -- @return		Table of available channels
 function wifi.channels(iface)
-	local t = iwinfo.type(iface or "")
+	local stat, iwinfo = pcall(require, "iwinfo")
 	local cns
-	if iface and t and iwinfo[t] then
-		cns = iwinfo[t].freqlist(iface)
+
+	if stat then
+		local t = iwinfo.type(iface or "")
+		if iface and t and iwinfo[t] then
+			cns = iwinfo[t].freqlist(iface)
+		end
 	end
 
 	if not cns or #cns == 0 then

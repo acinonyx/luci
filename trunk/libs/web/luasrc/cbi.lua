@@ -50,6 +50,8 @@ AUTO = true
 
 CREATE_PREFIX = "cbi.cts."
 REMOVE_PREFIX = "cbi.rts."
+RESORT_PREFIX = "cbi.sts."
+FEXIST_PREFIX = "cbi.cbe."
 
 -- Loads a CBI map from given file, creating an environment and returns it
 function load(cbimap, ...)
@@ -1121,6 +1123,20 @@ function TypedSection.parse(self, novld)
 		end
 	end
 
+	if self.sortable then
+		local stval = RESORT_PREFIX .. self.config .. "." .. self.sectiontype
+		local order = self.map:formvalue(stval)
+		if order and #order > 0 then
+			local sid
+			local num = 0
+			for sid in util.imatch(order) do
+				self.map.uci:reorder(self.config, sid, num)
+				num = num + 1
+			end
+			self.changed = (num > 0)
+		end
+	end
+
 	if created or self.changed then
 		self:push_events()
 	end
@@ -1466,29 +1482,31 @@ function Flag.__init__(self, ...)
 	AbstractValue.__init__(self, ...)
 	self.template  = "cbi/fvalue"
 
-	self.enabled = "1"
+	self.enabled  = "1"
 	self.disabled = "0"
+	self.default  = self.disabled
 end
 
 -- A flag can only have two states: set or unset
 function Flag.parse(self, section)
-	local fvalue = self:formvalue(section)
+	local fexists = self.map:formvalue(
+		FEXIST_PREFIX .. self.config .. "." .. section .. "." .. self.option)
 
-	if fvalue then
-		fvalue = self.enabled
-	else
-		fvalue = self.disabled
-	end
-
-	if fvalue == self.enabled or (not self.optional and not self.rmempty) then
-		if not(fvalue == self:cfgvalue(section)) then
+	if fexists then
+		local fvalue = self:formvalue(section) and self.enabled or self.disabled
+		if fvalue ~= self.default or (not self.optional and not self.rmempty) then
 			self:write(section, fvalue)
+		else
+			self:remove(section)
 		end
 	else
 		self:remove(section)
 	end
 end
 
+function Flag.cfgvalue(self, section)
+	return AbstractValue.cfgvalue(self, section) or self.default
+end
 
 
 --[[

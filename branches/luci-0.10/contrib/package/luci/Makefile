@@ -103,6 +103,9 @@ define Package/luci-lib-core/config
        config PACKAGE_luci-lib-core_stripped
                bool "Stripped"
 
+       config PACKAGE_luci-lib-core_srcdiet
+               bool "Compressed Source"
+
        config PACKAGE_luci-lib-core_source
                bool "Full Source"
 
@@ -117,8 +120,8 @@ ifneq ($(CONFIG_PACKAGE_luci-lib-core_stripped),)
   LUA_TARGET:=strip
 endif
 
-ifneq ($(CONFIG_PACKAGE_luci-lib-core_zipped),)
-  LUA_TARGET:=gzip
+ifneq ($(CONFIG_PACKAGE_luci-lib-core_srcdiet),)
+  LUA_TARGET:=diet
 endif
 
 ifneq ($(CONFIG_PACKAGE_luci-lib-core),)
@@ -220,12 +223,12 @@ define Package/luci-mod-freifunk-community
   TITLE:=Freifunk Community Meta-Package
   DEPENDS+= \
    +luci-lib-web +luci-app-splash \
-   +luci-app-ffwizard-leipzig \
+   +luci-app-ffwizard \
    +luci-i18n-german \
    +PACKAGE_luci-mod-freifunk-community:olsrd +PACKAGE_luci-mod-freifunk-community:olsrd-mod-dyn-gw-plain \
    +PACKAGE_luci-mod-freifunk-community:olsrd-mod-txtinfo +PACKAGE_luci-mod-freifunk-community:olsrd-mod-nameservice \
    +PACKAGE_luci-mod-freifunk-community:olsrd-mod-watchdog +PACKAGE_luci-mod-freifunk-community:kmod-tun \
-   +PACKAGE_luci-mod-freifunk-community:ip +PACKAGE_luci-mod-freifunk-community:freifunk-watchdog +luci-app-olsr
+   +PACKAGE_luci-mod-freifunk-community:ip +PACKAGE_luci-mod-freifunk-community:freifunk-watchdog +luci-app-olsr +luci-app-olsr-services
 endef
 
 define Package/luci-mod-freifunk-community/install
@@ -319,10 +322,8 @@ define Package/luci-app-diag-devinfo/conffiles
 endef
 
 
-$(eval $(call application,ffwizard-leipzig,Freifunk Leipzig configuration wizard))
-
 $(eval $(call application,ffwizard,Freifunk configuration wizard,\
-	+PACKAGE_luci-mod-freifunk))
+	+luci-mod-freifunk))
 
 $(eval $(call application,siitwizard,SIIT IPv4-over-IPv6 configuration wizard,\
 	+PACKAGE_luci-app-siitwizard:kmod-siit))
@@ -335,6 +336,9 @@ $(eval $(call application,olsr,OLSR configuration and status module,\
 
 $(eval $(call application,olsr-viz,OLSR Visualisation,\
 	+PACKAGE_luci-app-olsr-viz:luci-app-olsr +PACKAGE_luci-app-olsr-viz:olsrd-mod-txtinfo))
+
+$(eval $(call application,olsr-services,Show services announced with the nameservice plugin,\
+	+PACKAGE_luci-app-olsr-services:olsrd-mod-nameservice +luci-mod-freifunk +PACKAGE_luci-app-olsr-services:luci-app-olsr))
 
 $(eval $(call application,qos,Quality of Service configuration module,\
 	+PACKAGE_luci-app-qos:qos-scripts))
