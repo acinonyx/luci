@@ -270,8 +270,21 @@ if hwtype == "prism2" then
 
 	s:taboption("advanced", Flag, "diversity", translate("Diversity")).rmempty = false
 
-	s:taboption("advanced", Value, "txantenna", translate("Transmitter Antenna"))
-	s:taboption("advanced", Value, "rxantenna", translate("Receiver Antenna"))
+	ant1 = s:taboption("advanced", ListValue, "txantenna", translate("Transmitter Antenna"))
+	ant1.widget = "radio"
+	ant1.orientation = "horizontal"
+	ant1:depends("diversity", "")
+	ant1:value("0", translate("Default"))
+	ant1:value("2", translate("Antenna 1"))
+	ant1:value("3", translate("Antenna 2"))
+
+	ant2 = s:taboption("advanced", ListValue, "rxantenna", translate("Receiver Antenna"))
+	ant2.widget = "radio"
+	ant2.orientation = "horizontal"
+	ant2:depends("diversity", "")
+	ant2:value("0", translate("Default"))
+	ant2:value("2", translate("Antenna 1"))
+	ant2:value("3", translate("Antenna 2"))
 end
 
 
