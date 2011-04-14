@@ -17,8 +17,8 @@ limitations under the License.
 
 ]]--
 
-local type, pairs, ipairs, loadfile, table, tonumber, math, i18n
-	= type, pairs, ipairs, loadfile, table, tonumber, math, luci.i18n
+local type, next, pairs, ipairs, loadfile, table, tonumber, math, i18n
+	= type, next, pairs, ipairs, loadfile, table, tonumber, math, luci.i18n
 
 local nxo = require "nixio"
 local ipc = require "luci.ip"
@@ -150,12 +150,19 @@ function _wifi_lookup(ifn)
 	end
 end
 
+function _iface_virtual(x)
+	return (
+		x:match("^6in4-%w") or x:match("^6to4-%w") or x:match("^3g-%w") or
+		x:match("^ppp-%w") or x:match("^pppoe-%w") or x:match("^pppoa-%w") or
+		x:match("^relay-%w")
+	)
+end
+
 function _iface_ignore(x)
 	return (
 		x:match("^wmaster%d") or x:match("^wifi%d") or x:match("^hwsim%d") or
-		x:match("^imq%d") or x:match("^mon.wlan%d") or x:match("^6in4-%w") or
-		x:match("^6to4-%w") or x:match("^3g-%w") or x:match("^ppp-%w") or
-		x:match("^pppoe-%w") or x:match("^pppoa-%w") or	x == "sit0" or x == "lo"
+		x:match("^imq%d") or x:match("^mon.wlan%d") or
+		x == "sit0" or x == "lo" or _iface_virtual(x)
 	)
 end
 
@@ -174,7 +181,7 @@ function init(cursor)
 		local name = i.name:match("[^:]+")
 		local prnt = name:match("^([^%.]+)%.")
 
-		if not _iface_ignore(name) then
+		if _iface_virtual(name) or not _iface_ignore(name) then
 			ifs[name] = ifs[name] or {
 				idx      = i.ifindex or n,
 				name     = name,
@@ -478,7 +485,7 @@ end
 function network._ip(self, opt, family, list)
 	local ip = uci_s:get("network", self.sid, opt)
 	local fc = (family == 6) and ipc.IPv6 or ipc.IPv4
-	if ip then
+	if ip or list then
 		if list then
 			local l = { }
 			for ip in utl.imatch(ip) do
@@ -505,6 +512,8 @@ function network.ifname(self)
 	local p = self:proto()
 	if self:is_bridge() then
 		return "br-" .. self.sid
+	elseif self:proto() == "relay" then
+		return uci_s:get("network", self.sid, "up") == "1" and "lo" or nil
 	elseif self:is_virtual() then
 		return p .. "-" .. self.sid
 	else
@@ -547,7 +556,9 @@ function network.device(self)
 		dev = (type(dev) == "table") and dev[1] or dev
 	end
 
-	return dev
+	for dev in utl.imatch(dev) do
+		return dev
+	end
 end
 
 function network.proto(self)
@@ -641,7 +652,7 @@ function network.is_virtual(self)
 	local p = self:proto()
 	return (
 		p == "3g" or p == "6in4" or p == "6to4" or p == "ppp" or
-		p == "pppoe" or p == "pppoa"
+		p == "pppoe" or p == "pppoa" or p == "relay"
 	)
 end
 
@@ -951,7 +962,8 @@ end
 
 wifidev = utl.class()
 function wifidev.__init__(self, dev)
-	self.sid = dev
+	self.sid    = dev
+	self.iwinfo = dev and sys.wifi.getiwinfo(dev) or { }
 end
 
 function wifidev.get(self, opt)
@@ -964,6 +976,33 @@ end
 
 function wifidev.name(self)
 	return self.sid
+end
+
+function wifidev.hwmodes(self)
+	local l = self.iwinfo.hwmodelist
+	if l and next(l) then
+		return l
+	else
+		return { b = true, g = true }
+	end
+end
+
+function wifidev.get_i18n(self)
+	local t = "Generic"
+	if self.iwinfo.type == "wl" then
+		t = "Broadcom"
+	elseif self.iwinfo.type == "madwifi" then
+		t = "Atheros"
+	end
+
+	local m = ""
+	local l = self:hwmodes()
+	if l.a then m = m .. "a" end
+	if l.b then m = m .. "b" end
+	if l.g then m = m .. "g" end
+	if l.n then m = m .. "n" end
+
+	return "%s 802.11%s Wireless Controller (%s)" %{ t, m, self:name() }
 end
 
 function wifidev.is_up(self)
@@ -1082,6 +1121,10 @@ function wifinet.network(self)
 	return uci_s:get("wifinet", self.sid, "network")
 end
 
+function wifinet.id(self)
+	return self.netid
+end
+
 function wifinet.name(self)
 	return self.sid
 end
@@ -1163,6 +1206,14 @@ end
 
 function wifinet.noise(self)
 	return self.iwinfo.noise or 0
+end
+
+function wifinet.country(self)
+	return self.iwinfo.country or "00"
+end
+
+function wifinet.txpower(self)
+	return self.iwinfo.txpower or 0
 end
 
 function wifinet.signal_level(self, s, n)
