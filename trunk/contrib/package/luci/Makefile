@@ -39,31 +39,6 @@ ifeq ($(BOARD),brcm-2.4)
 endif
 
 
-include $(INCLUDE_DIR)/package.mk
-
-ifeq ($(USELOCAL),1)
-  define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(TAR) c -C ../../../ . \
-		--exclude=.pc --exclude=.svn --exclude=.git \
-		--exclude='boa-0*' --exclude='*.o' --exclude='*.so' \
-		--exclude=dist | \
-			tar x -C $(PKG_BUILD_DIR)/
-  endef
-endif
-
-define Build/Configure
-endef
-
-MAKE_FLAGS += \
-	MODULES="$(LUCI_SELECTED_MODULES)" \
-	LUA_TARGET="$(LUA_TARGET)" \
-	LUA_SHLIBS="-llua -lm -ldl -lcrypt" \
-	CFLAGS="$(TARGET_CFLAGS) $(LUCI_CFLAGS) -I$(STAGING_DIR)/usr/include" \
-	LDFLAGS="$(TARGET_LDFLAGS) -L$(STAGING_DIR)/usr/lib" \
-	NIXIO_TLS="$(NIXIO_TLS)" OS="Linux"
-
-
 ### Templates ###
 define Package/luci/install/template
 	$(CP) -a $(PKG_BUILD_DIR)/$(2)/dist/* $(1)/ -R
@@ -331,6 +306,9 @@ $(eval $(call application,siitwizard,SIIT IPv4-over-IPv6 configuration wizard,\
 $(eval $(call application,firewall,Firmware and Portforwarding application,\
 	+PACKAGE_luci-app-firewall:firewall))
 
+$(eval $(call application,freifunk-policyrouting,Policy routing for mesh traffic,\
+        +PACKAGE_luci-app-freifunk-policyrouting:freifunk-policyrouting +luci-mod-freifunk))
+
 $(eval $(call application,olsr,OLSR configuration and status module,\
 	+luci-mod-admin-full +PACKAGE_luci-app-olsr:olsrd +PACKAGE_luci-app-olsr:olsrd-mod-txtinfo))
 
@@ -572,4 +550,30 @@ $(eval $(call collection,light,\
 
 ### Compile ###
 PKG_CONFIG_DEPENDS=$(patsubst %,CONFIG_PACKAGE_%,$(LUCI_BUILD_PACKAGES))
+
+include $(INCLUDE_DIR)/package.mk
+
+ifeq ($(USELOCAL),1)
+  define Build/Prepare
+	mkdir -p $(PKG_BUILD_DIR)
+	$(TAR) c -C ../../../ . \
+		--exclude=.pc --exclude=.svn --exclude=.git \
+		--exclude='boa-0*' --exclude='*.o' --exclude='*.so' \
+		--exclude=dist | \
+			tar x -C $(PKG_BUILD_DIR)/
+  endef
+endif
+
+define Build/Configure
+endef
+
+MAKE_FLAGS += \
+	MODULES="$(LUCI_SELECTED_MODULES)" \
+	LUA_TARGET="$(LUA_TARGET)" \
+	LUA_SHLIBS="-llua -lm -ldl -lcrypt" \
+	CFLAGS="$(TARGET_CFLAGS) $(LUCI_CFLAGS) -I$(STAGING_DIR)/usr/include" \
+	LDFLAGS="$(TARGET_LDFLAGS) -L$(STAGING_DIR)/usr/lib" \
+	NIXIO_TLS="$(NIXIO_TLS)" OS="Linux"
+
+
 $(foreach b,$(LUCI_BUILD_PACKAGES),$(eval $(call BuildPackage,$(b))))
