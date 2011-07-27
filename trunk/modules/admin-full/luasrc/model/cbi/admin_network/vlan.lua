@@ -2,7 +2,7 @@
 LuCI - Lua Configuration Interface
 
 Copyright 2008 Steven Barth <steven@midlink.org>
-Copyright 2010 Jo-Philipp Wich <xm@subsignal.org>
+Copyright 2010-2011 Jo-Philipp Wich <xm@subsignal.org>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,11 +18,15 @@ m = Map("network", translate("Switch"), translate("The network ports on your rou
 m.uci:foreach("network", "switch",
 	function(x)
 		local switch_name = x.name or x['.name']
+		local has_vlan    = nil
+		local has_learn   = nil 
 		local has_vlan4k  = nil
 		local has_ptpvid  = nil
+		local has_jumbo3  = nil
+		local min_vid     = 0
 		local max_vid     = 16
 		local num_vlans   = 16
-		local num_ports   = 5
+		local num_ports   = 6
 		local cpu_port    = 5
 
 		local enable_vlan4k = false
@@ -49,9 +53,10 @@ m.uci:foreach("network", "switch",
 					num_ports, cpu_port, num_vlans =
 						line:match("ports: (%d+) %(cpu @ (%d+)%), vlans: (%d+)")
 
-					num_ports = tonumber(num_ports or  5)
-					num_vlans = tonumber(num_vlans or 16)
-					cpu_port  = tonumber(cpu_port  or  5)
+					num_ports  = tonumber(num_ports) or  6
+					num_vlans  = tonumber(num_vlans) or 16
+					cpu_port   = tonumber(cpu_port)  or  5
+					min_vid    = 1
 
 				elseif line:match(": pvid") or line:match(": tag") or line:match(": vid") then
 					if is_vlan_attr then has_vlan4k = line:match(": (%w+)") end
@@ -60,6 +65,14 @@ m.uci:foreach("network", "switch",
 				elseif line:match(": enable_vlan4k") then
 					enable_vlan4k = true
 
+				elseif line:match(": enable_vlan") then
+					has_vlan = "enable_vlan"
+
+				elseif line:match(": enable_learning") then
+					has_learn = "enable_learning"
+
+				elseif line:match(": max_length") then
+					has_jumbo3 = "max_length"
 				end
 			end
 
@@ -98,14 +111,25 @@ m.uci:foreach("network", "switch",
 		s = m:section(NamedSection, x['.name'], "switch", translatef("Switch %q", switch_name))
 		s.addremove = false
 
-		s:option(Flag, "enable", translate("Enable this switch")).default = "1"
-		s:option(Flag, "enable_vlan", translate("Enable VLAN functionality")).default = "1"
+		if has_vlan then
+			s:option(Flag, has_vlan, translate("Enable VLAN functionality"))
+		end
 
 		if enable_vlan4k then
 			s:option(Flag, "enable_vlan4k", translate("Enable 4K VLANs"))
 		end
 
-		s:option(Flag, "reset", translate("Reset switch during setup")).default = "1"
+		if has_learn then
+			x = s:option(Flag, has_learn, translate("Enable learning and aging"))
+			x.default = x.enabled
+		end
+
+		if has_jumbo3 then
+			x = s:option(Flag, has_jumbo3, translate("Enable Jumbo Frame passthrough"))
+			x.enabled = "3"
+			x.rmempty = true
+		end
+
 
 		-- VLAN table
 		s = m:section(TypedSection, "switch_vlan", translatef("VLANs on %q", switch_name))
@@ -148,6 +172,7 @@ m.uci:foreach("network", "switch",
 					if id ~= nil and id > max_id then max_id = id end
 				end)
 
+			m.uci:set("network", sid, "device", switch_name)
 			m.uci:set("network", sid, "vlan", max_nr + 1)
 
 			if has_vlan4k then
@@ -191,7 +216,7 @@ m.uci:foreach("network", "switch",
 			if value == "u" then
 				if not untagged[self.option] then
 					untagged[self.option] = true
-				else
+				elseif min_vid > 0 or tonumber(self.option) ~= cpu_port then -- enable multiple untagged cpu ports due to weird broadcom default setup
 					return nil,
 						translatef("Port %d is untagged in multiple VLANs!", tonumber(self.option) + 1)
 				end
@@ -210,11 +235,11 @@ m.uci:foreach("network", "switch",
 		vid.validate = function(self, value, section)
 			local v = tonumber(value)
 			local m = has_vlan4k and 4094 or (num_vlans - 1)
-			if v ~= nil and v > 0 and v <= m then
+			if v ~= nil and v >= min_vid and v <= m then
 				return value
 			else
 				return nil,
-					translatef("Invalid VLAN ID given! Only IDs between %d and %d are allowed.", 1, m)
+					translatef("Invalid VLAN ID given! Only IDs between %d and %d are allowed.", min_vid, m)
 			end
 		end
 

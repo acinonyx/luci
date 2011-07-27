@@ -231,14 +231,6 @@ if hwtype == "broadcom" then
 	mode:value("11g", "802.11g")
 	mode:value("11gst", "802.11g + Turbo")
 
-	mp = s:taboption("macfilter", ListValue, "macfilter", translate("MAC-Address Filter"))
-	mp:value("", translate("disable"))
-	mp:value("allow", translate("Allow listed only"))
-	mp:value("deny", translate("Allow all except listed"))
-	ml = s:taboption("macfilter", DynamicList, "maclist", translate("MAC-List"))
-	ml:depends({macfilter="allow"})
-	ml:depends({macfilter="deny"})
-
 	ant1 = s:taboption("advanced", ListValue, "txantenna", translate("Transmitter Antenna"))
 	ant1.widget = "radio"
 	ant1:depends("diversity", "")
@@ -342,6 +334,16 @@ if hwtype == "mac80211" then
 
 	s:taboption("advanced", Value, "frag", translate("Fragmentation Threshold"))
 	s:taboption("advanced", Value, "rts", translate("RTS/CTS Threshold"))
+	
+	mp = s:taboption("macfilter", ListValue, "macfilter", translate("MAC-Address Filter"))
+	mp:value("", translate("disable"))
+	mp:value("allow", translate("Allow listed only"))
+	mp:value("deny", translate("Allow all except listed"))
+
+	ml = s:taboption("macfilter", DynamicList, "maclist", translate("MAC-List"))
+	ml.datatype = "macaddr"
+	ml:depends({macfilter="allow"})
+	ml:depends({macfilter="deny"})
 
 	mode:value("ap-wds", "%s (%s)" % {translate("Access Point"), translate("WDS")})
 	mode:value("sta-wds", "%s (%s)" % {translate("Client"), translate("WDS")})
@@ -434,9 +436,11 @@ if hwtype == "atheros" then
 
 	mp = s:taboption("macfilter", ListValue, "macpolicy", translate("MAC-Address Filter"))
 	mp:value("", translate("disable"))
-	mp:value("deny", translate("Allow listed only"))
-	mp:value("allow", translate("Allow all except listed"))
+	mp:value("allow", translate("Allow listed only"))
+	mp:value("deny", translate("Allow all except listed"))
+
 	ml = s:taboption("macfilter", DynamicList, "maclist", translate("MAC-List"))
+	ml.datatype = "macaddr"
 	ml:depends({macpolicy="allow"})
 	ml:depends({macpolicy="deny"})
 
@@ -507,8 +511,8 @@ if hwtype == "prism2" then
 
 	mp = s:taboption("macfilter", ListValue, "macpolicy", translate("MAC-Address Filter"))
 	mp:value("", translate("disable"))
-	mp:value("deny", translate("Allow listed only"))
-	mp:value("allow", translate("Allow all except listed"))
+	mp:value("allow", translate("Allow listed only"))
+	mp:value("deny", translate("Allow all except listed"))
 	ml = s:taboption("macfilter", DynamicList, "maclist", translate("MAC-List"))
 	ml:depends({macpolicy="allow"})
 	ml:depends({macpolicy="deny"})
@@ -545,7 +549,7 @@ if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
 		encr:value("psk2", "WPA2-PSK")
 		encr:value("psk-mixed", "WPA-PSK/WPA2-PSK Mixed Mode")
 		encr:value("wpa", "WPA-EAP", {mode="ap"}, {mode="sta"}, {mode="ap-wds"}, {mode="sta-wds"})
-		encr:value("wpa2", "WPA2-EAP", {mode="ap"}, {mode="sta"})
+		encr:value("wpa2", "WPA2-EAP", {mode="ap"}, {mode="sta"}, {mode="ap-wds"}, {mode="sta-wds"})
 	elseif hostapd and not supplicant then
 		encr:value("psk", "WPA-PSK", {mode="ap"}, {mode="ap-wds"}, {mode="adhoc"}, {mode="ahdemo"})
 		encr:value("psk2", "WPA2-PSK", {mode="ap"}, {mode="ap-wds"}, {mode="adhoc"}, {mode="ahdemo"})
@@ -677,18 +681,26 @@ if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
 	eaptype:value("peap", "PEAP")
 	eaptype:depends({mode="sta", encryption="wpa"})
 	eaptype:depends({mode="sta", encryption="wpa2"})
+	eaptype:depends({mode="sta-wds", encryption="wpa"})
+	eaptype:depends({mode="sta-wds", encryption="wpa2"})
 
 	cacert = s:taboption("encryption", FileUpload, "ca_cert", translate("Path to CA-Certificate"))
 	cacert:depends({mode="sta", encryption="wpa"})
 	cacert:depends({mode="sta", encryption="wpa2"})
+	cacert:depends({mode="sta-wds", encryption="wpa"})
+	cacert:depends({mode="sta-wds", encryption="wpa2"})
 
 	privkey = s:taboption("encryption", FileUpload, "priv_key", translate("Path to Private Key"))
 	privkey:depends({mode="sta", eap_type="tls", encryption="wpa2"})
 	privkey:depends({mode="sta", eap_type="tls", encryption="wpa"})
+	privkey:depends({mode="sta-wds", eap_type="tls", encryption="wpa2"})
+	privkey:depends({mode="sta-wds", eap_type="tls", encryption="wpa"})
 
 	privkeypwd = s:taboption("encryption", Value, "priv_key_pwd", translate("Password of Private Key"))
 	privkeypwd:depends({mode="sta", eap_type="tls", encryption="wpa2"})
 	privkeypwd:depends({mode="sta", eap_type="tls", encryption="wpa"})
+	privkeypwd:depends({mode="sta-wds", eap_type="tls", encryption="wpa2"})
+	privkeypwd:depends({mode="sta-wds", eap_type="tls", encryption="wpa"})
 
 
 	auth = s:taboption("encryption", Value, "auth", translate("Authentication"))
@@ -700,6 +712,10 @@ if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
 	auth:depends({mode="sta", eap_type="peap", encryption="wpa"})
 	auth:depends({mode="sta", eap_type="ttls", encryption="wpa2"})
 	auth:depends({mode="sta", eap_type="ttls", encryption="wpa"})
+	auth:depends({mode="sta-wds", eap_type="peap", encryption="wpa2"})
+	auth:depends({mode="sta-wds", eap_type="peap", encryption="wpa"})
+	auth:depends({mode="sta-wds", eap_type="ttls", encryption="wpa2"})
+	auth:depends({mode="sta-wds", eap_type="ttls", encryption="wpa"})
 
 
 	identity = s:taboption("encryption", Value, "identity", translate("Identity"))
@@ -707,12 +723,20 @@ if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
 	identity:depends({mode="sta", eap_type="peap", encryption="wpa"})
 	identity:depends({mode="sta", eap_type="ttls", encryption="wpa2"})
 	identity:depends({mode="sta", eap_type="ttls", encryption="wpa"})
+	identity:depends({mode="sta-wds", eap_type="peap", encryption="wpa2"})
+	identity:depends({mode="sta-wds", eap_type="peap", encryption="wpa"})
+	identity:depends({mode="sta-wds", eap_type="ttls", encryption="wpa2"})
+	identity:depends({mode="sta-wds", eap_type="ttls", encryption="wpa"})
 
 	password = s:taboption("encryption", Value, "password", translate("Password"))
 	password:depends({mode="sta", eap_type="peap", encryption="wpa2"})
 	password:depends({mode="sta", eap_type="peap", encryption="wpa"})
 	password:depends({mode="sta", eap_type="ttls", encryption="wpa2"})
 	password:depends({mode="sta", eap_type="ttls", encryption="wpa"})
+	password:depends({mode="sta-wds", eap_type="peap", encryption="wpa2"})
+	password:depends({mode="sta-wds", eap_type="peap", encryption="wpa"})
+	password:depends({mode="sta-wds", eap_type="ttls", encryption="wpa2"})
+	password:depends({mode="sta-wds", eap_type="ttls", encryption="wpa"})
 end
 
 return m

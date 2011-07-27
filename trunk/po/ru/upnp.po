@@ -1,55 +1,125 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-19 19:36+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-07-20 11:20+0200\n"
+"Last-Translator: Kamal <kamal.aliev@epscom.ru>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Translate Toolkit 1.1.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Pootle 2.0.4\n"
+
+msgid ""
+"ACLs specify which external ports may be redirected to which internal "
+"addresses and ports"
+msgstr ""
+
+msgid "Action"
+msgstr "Действие"
 
 msgid "Active UPnP Redirects"
+msgstr "Активные UPnP переадресации"
+
+msgid "Advanced Settings"
+msgstr "Расширенные настройки"
+
+msgid "Allow adding forwards only to requesting ip addresses"
+msgstr ""
+
+msgid "Announced model number"
+msgstr ""
+
+msgid "Announced serial number"
+msgstr ""
+
+msgid "Clean rules interval"
+msgstr ""
+
+msgid "Clean rules threshold"
 msgstr ""
 
 msgid "Client Address"
-msgstr ""
+msgstr "Адрес клиента"
 
 msgid "Client Port"
-msgstr ""
+msgstr "Порт клиента"
 
 msgid "Collecting data..."
-msgstr ""
+msgstr "Сбор данных..."
+
+msgid "Comment"
+msgstr "Комментарий"
 
 msgid "Delete Redirect"
-msgstr ""
+msgstr "Удалить переадресацию"
+
+msgid "Device UUID"
+msgstr "UUID устройства"
 
 msgid "Downlink"
 msgstr ""
 
-msgid "Enable NAT-PMP"
-msgstr ""
+msgid "Enable NAT-PMP functionality"
+msgstr "Использовать NAT-PMP"
 
-msgid "Enable UPnP Service"
+msgid "Enable UPnP functionality"
+msgstr "Использовать UPnP"
+
+msgid "Enable additional logging"
 msgstr ""
 
 msgid "Enable secure mode"
-msgstr ""
+msgstr "Использовать защищенный режим"
 
 msgid "External Port"
+msgstr "Внешний порт"
+
+msgid "External ports"
+msgstr "Внешние порты"
+
+msgid "General Settings"
+msgstr "Общие настройки"
+
+msgid "Internal addresses"
+msgstr "Внутренние адреса"
+
+msgid "Internal ports"
+msgstr "Внутренние порты"
+
+msgid "MiniUPnP ACLs"
 msgstr ""
 
-msgid "Log output"
+msgid "MiniUPnP settings"
+msgstr ""
+
+msgid "Notify interval"
+msgstr "Интервал уведомления"
+
+msgid "Port"
+msgstr "Порт"
+
+msgid "Presentation URL"
 msgstr ""
 
 msgid "Protocol"
+msgstr "Протокол"
+
+msgid "Puts extra debugging information into the system log"
 msgstr ""
 
-msgid "There are no active redirects."
+msgid "Report system instead of daemon uptime"
 msgstr ""
+
+msgid "Start UPnP and NAT-PMP service"
+msgstr "Запуск UPnP и NAT-PMP служб"
+
+msgid "There are no active redirects."
+msgstr "Активные переадресации отсутствуют."
 
 msgid ""
 "UPNP allows clients in the local network to automatically configure the "
@@ -60,11 +130,19 @@ msgid ""
 "UPnP allows clients in the local network to automatically configure the "
 "router."
 msgstr ""
+"UPnP позволяет клиентам в локальной сети автоматически настраивать "
+"маршрутизатор."
+
+msgid "UPnP lease file"
+msgstr ""
 
 msgid "Universal Plug & Play"
 msgstr ""
 
 msgid "Uplink"
+msgstr ""
+
+msgid "Value in KByte/s, informational only"
 msgstr ""
 
 msgid "enable"

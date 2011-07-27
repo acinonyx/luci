@@ -1,25 +1,26 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-10 03:40+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-05-13 09:06+0200\n"
+"Last-Translator: Jo-Philipp <xm@subsignal.org>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Translate Toolkit 1.1.1\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Pootle 2.0.4\n"
 
 msgid "(%d minute window, %d second interval)"
-msgstr ""
+msgstr "(%d minute window, %d second interval)"
 
 msgid "(%s available)"
 msgstr "(%s available)"
 
 msgid "(empty)"
-msgstr ""
+msgstr "(empty)"
 
 msgid "(no interfaces attached)"
 msgstr "(no interfaces attached)"
@@ -34,19 +35,19 @@ msgid "-- custom --"
 msgstr "-- custom --"
 
 msgid "1 Minute Load:"
-msgstr ""
+msgstr "1 Minute Load:"
 
 msgid "15 Minute Load:"
-msgstr ""
+msgstr "15 Minute Load:"
 
 msgid "40MHz 2nd channel above"
-msgstr ""
+msgstr "40MHz 2nd channel above"
 
 msgid "40MHz 2nd channel below"
-msgstr ""
+msgstr "40MHz 2nd channel below"
 
 msgid "5 Minute Load:"
-msgstr ""
+msgstr "5 Minute Load:"
 
 msgid "<abbr title=\"Basic Service Set Identifier\">BSSID</abbr>"
 msgstr "<abbr title=\"Basic Service Set Identifier\">BSSID</abbr>"
@@ -59,15 +60,17 @@ msgstr ""
 "prefix"
 
 msgid "<abbr title=\"Domain Name System\">DNS</abbr> query port"
-msgstr ""
+msgstr "<abbr title=\"Domain Name System\">DNS</abbr> query port"
 
 msgid "<abbr title=\"Domain Name System\">DNS</abbr> server port"
-msgstr ""
+msgstr "<abbr title=\"Domain Name System\">DNS</abbr> server port"
 
 msgid ""
 "<abbr title=\"Domain Name System\">DNS</abbr> servers will be queried in the "
 "order of the resolvfile"
 msgstr ""
+"<abbr title=\"Domain Name System\">DNS</abbr> servers will be queried in the "
+"order of the resolvfile"
 
 msgid "<abbr title=\"Domain Name System\">DNS</abbr>-Server"
 msgstr "<abbr title=\"Domain Name System\">DNS</abbr>-Server"
@@ -107,7 +110,7 @@ msgid "<abbr title=\"Light Emitting Diode\">LED</abbr> Configuration"
 msgstr "<abbr title=\"Light Emitting Diode\">LED</abbr> Configuration"
 
 msgid "<abbr title=\"Light Emitting Diode\">LED</abbr> Name"
-msgstr ""
+msgstr "<abbr title=\"Light Emitting Diode\">LED</abbr> Name"
 
 msgid ""
 "<abbr title=\"Lua Configuration Interface\">LuCI</abbr> is a collection of "
@@ -136,14 +139,18 @@ msgid ""
 "<abbr title=\"maximal\">Max.</abbr> <abbr title=\"Dynamic Host Configuration "
 "Protocol\">DHCP</abbr> leases"
 msgstr ""
+"<abbr title=\"maximal\">Max.</abbr> <abbr title=\"Dynamic Host Configuration "
+"Protocol\">DHCP</abbr> leases"
 
 msgid ""
 "<abbr title=\"maximal\">Max.</abbr> <abbr title=\"Extension Mechanisms for "
 "Domain Name System\">EDNS0</abbr> paket size"
 msgstr ""
+"<abbr title=\"maximal\">Max.</abbr> <abbr title=\"Extension Mechanisms for "
+"Domain Name System\">EDNS0</abbr> paket size"
 
 msgid "<abbr title=\"maximal\">Max.</abbr> concurrent queries"
-msgstr ""
+msgstr "<abbr title=\"maximal\">Max.</abbr> concurrent queries"
 
 msgid ""
 "A lightweight HTTP/1.1 webserver written in C and Lua designed to serve LuCI"
@@ -156,33 +163,45 @@ msgid ""
 msgstr ""
 "A small webserver which can be used to serve <abbr title=\"Lua Configuration "
 "Interface\">LuCI</abbr>."
+
+msgid "AHCP Settings"
+msgstr ""
 
 msgid "AR Support"
 msgstr "AR Support"
 
+msgid "ARP ping retries"
+msgstr "ARP ping retries"
+
 msgid "ATM Bridges"
-msgstr ""
+msgstr "ATM Bridges"
 
 msgid "ATM Settings"
-msgstr ""
+msgstr "ATM Settings"
 
 msgid "ATM Virtual Channel Identifier (VCI)"
-msgstr ""
+msgstr "ATM Virtual Channel Identifier (VCI)"
 
 msgid "ATM Virtual Path Identifier (VPI)"
-msgstr ""
+msgstr "ATM Virtual Path Identifier (VPI)"
 
 msgid ""
 "ATM bridges expose encapsulated ethernet in AAL5 connections as virtual "
 "Linux network interfaces which can be used in conjunction with DHCP or PPP "
 "to dial into the provider network."
 msgstr ""
+"ATM bridges expose encapsulated ethernet in AAL5 connections as virtual "
+"Linux network interfaces which can be used in conjunction with DHCP or PPP "
+"to dial into the provider network."
 
 msgid "ATM device number"
-msgstr ""
+msgstr "ATM device number"
 
 msgid "About"
 msgstr "About"
+
+msgid "Accept Router Advertisements"
+msgstr "Accept Router Advertisements"
 
 msgid "Access Point"
 msgstr "Access Point"
@@ -205,6 +224,9 @@ msgstr "Active <abbr title=\"Internet Protocol Version 6\">IPv6</abbr>-Routes"
 msgid "Active Connections"
 msgstr "Active Connections"
 
+msgid "Active IP Connections"
+msgstr "Active IP Connections"
+
 msgid "Active Leases"
 msgstr "Active Leases"
 
@@ -215,19 +237,19 @@ msgid "Add"
 msgstr "Add"
 
 msgid "Add local domain suffix to names served from hosts files"
-msgstr ""
+msgstr "Add local domain suffix to names served from hosts files"
 
 msgid "Add new interface..."
-msgstr ""
+msgstr "Add new interface..."
 
 msgid "Additional Hosts files"
-msgstr ""
+msgstr "Additional Hosts files"
 
 msgid "Additional pppd options"
 msgstr "Additional pppd options"
 
 msgid "Address"
-msgstr ""
+msgstr "Address"
 
 msgid "Addresses"
 msgstr "Addresses"
@@ -242,13 +264,13 @@ msgid "Advanced Settings"
 msgstr "Advanced Settings"
 
 msgid "Advertise IPv6 on network"
-msgstr ""
+msgstr "Advertise IPv6 on network"
 
 msgid "Advertised network ID"
-msgstr ""
+msgstr "Advertised network ID"
 
 msgid "Alert"
-msgstr ""
+msgstr "Alert"
 
 msgid "Alias"
 msgstr "Alias"
@@ -263,24 +285,27 @@ msgid "Allow listed only"
 msgstr "Allow listed only"
 
 msgid "Allow localhost"
-msgstr ""
+msgstr "Allow localhost"
+
+msgid "Allow remote hosts to connect to local SSH forwarded ports"
+msgstr "Allow remote hosts to connect to local SSH forwarded ports"
+
+msgid "Allow root logins with password"
+msgstr "Allow root logins with password"
+
+msgid "Allow the <em>root</em> user to login with password"
+msgstr "Allow the <em>root</em> user to login with password"
 
 msgid ""
 "Allow upstream responses in the 127.0.0.0/8 range, e.g. for RBL services"
 msgstr ""
+"Allow upstream responses in the 127.0.0.0/8 range, e.g. for RBL services"
 
 msgid "Allowed range is 1 to FFFF"
-msgstr ""
-
-msgid ""
-"Also kernel or service logfiles can be viewed here to get an overview over "
-"their current state."
-msgstr ""
-"Also kernel or service logfiles can be viewed here to get an overview over "
-"their current state."
+msgstr "Allowed range is 1 to FFFF"
 
 msgid "An additional network will be created if you leave this unchecked."
-msgstr ""
+msgstr "An additional network will be created if you leave this unchecked."
 
 msgid "Antenna 1"
 msgstr "Antenna 1"
@@ -316,19 +341,19 @@ msgid "Available"
 msgstr "Available"
 
 msgid "Available packages"
-msgstr ""
+msgstr "Available packages"
 
 msgid "Average:"
-msgstr ""
+msgstr "Average:"
 
 msgid "BSSID"
-msgstr ""
+msgstr "BSSID"
 
 msgid "Back"
-msgstr ""
+msgstr "Back"
 
 msgid "Back to Overview"
-msgstr ""
+msgstr "Back to Overview"
 
 msgid "Back to overview"
 msgstr "Back to overview"
@@ -346,13 +371,13 @@ msgid "Backup Archive"
 msgstr "Backup Archive"
 
 msgid "Bad address specified!"
-msgstr ""
+msgstr "Bad address specified!"
 
 msgid "Bit Rate"
-msgstr ""
+msgstr "Bit Rate"
 
 msgid "Bitrate"
-msgstr ""
+msgstr "Bitrate"
 
 msgid "Bridge"
 msgstr "Bridge"
@@ -366,6 +391,9 @@ msgstr "Bridge interfaces"
 msgid "Bridge unit number"
 msgstr ""
 
+msgid "Buffered"
+msgstr ""
+
 msgid "Buttons"
 msgstr "Buttons"
 
@@ -374,6 +402,9 @@ msgstr ""
 
 msgid "CPU usage (%)"
 msgstr "CPU usage (%)"
+
+msgid "Cached"
+msgstr ""
 
 msgid "Cancel"
 msgstr "Cancel"
@@ -391,6 +422,9 @@ msgstr "Changes"
 
 msgid "Changes applied."
 msgstr "Changes applied."
+
+msgid "Changes the administrator password for accessing the device"
+msgstr ""
 
 msgid "Channel"
 msgstr "Channel"
@@ -470,6 +504,9 @@ msgstr "Confirmation"
 msgid "Connect script"
 msgstr "Connect script"
 
+msgid "Connected"
+msgstr ""
+
 msgid "Connection Limit"
 msgstr "Connection Limit"
 
@@ -534,16 +571,25 @@ msgstr ""
 msgid "DHCP Server"
 msgstr ""
 
+msgid "DHCP and DNS"
+msgstr ""
+
 msgid "DHCP assigned"
 msgstr "DHCP assigned"
 
 msgid "DHCP-Options"
 msgstr "DHCP-Options"
 
+msgid "DNS"
+msgstr ""
+
 msgid "DNS forwardings"
 msgstr ""
 
 msgid "Debug"
+msgstr ""
+
+msgid "Default"
 msgstr ""
 
 msgid "Default state"
@@ -591,13 +637,22 @@ msgstr ""
 msgid "Diagnostics"
 msgstr ""
 
+msgid "Directory"
+msgstr ""
+
 msgid ""
 "Disable <abbr title=\"Dynamic Host Configuration Protocol\">DHCP</abbr> for "
 "this interface."
 msgstr ""
 
+msgid "Disable DNS setup"
+msgstr ""
+
 msgid "Disable HW-Beacon timer"
 msgstr "Disable HW-Beacon timer"
+
+msgid "Disabled"
+msgstr "Disabled"
 
 msgid "Discard upstream RFC1918 responses"
 msgstr ""
@@ -656,6 +711,9 @@ msgstr ""
 msgid "Download and install package"
 msgstr "Download and install package"
 
+msgid "Dropbear Instance"
+msgstr ""
+
 msgid ""
 "Dropbear offers <abbr title=\"Secure Shell\">SSH</abbr> network shell access "
 "and an integrated <abbr title=\"Secure Copy\">SCP</abbr> server"
@@ -699,6 +757,9 @@ msgstr "Enable <abbr title=\"Spanning Tree Protocol\">STP</abbr>"
 msgid "Enable IPv6 on PPP link"
 msgstr "Enable IPv6 on PPP link"
 
+msgid "Enable Jumbo Frame passthrough"
+msgstr ""
+
 msgid "Enable Keep-Alive"
 msgstr "Enable Keep-Alive"
 
@@ -711,6 +772,9 @@ msgstr ""
 msgid "Enable device"
 msgstr ""
 
+msgid "Enable learning and aging"
+msgstr ""
+
 msgid "Enable this mount"
 msgstr ""
 
@@ -720,8 +784,11 @@ msgstr ""
 msgid "Enable this switch"
 msgstr ""
 
+msgid "Enable/Disable"
+msgstr "Enable/Disable"
+
 msgid "Enabled"
-msgstr ""
+msgstr "Enabled"
 
 msgid "Enables the Spanning Tree Protocol on this bridge"
 msgstr "Enables the Spanning Tree Protocol on this bridge"
@@ -747,6 +814,9 @@ msgstr "Ethernet Switch"
 msgid "Expand hosts"
 msgstr ""
 
+msgid "Expires"
+msgstr ""
+
 msgid ""
 "Expiry time of leased addresses, minimum is 2 Minutes (<code>2m</code>)."
 msgstr ""
@@ -759,6 +829,9 @@ msgstr ""
 
 msgid "Fast Frames"
 msgstr "Fast Frames"
+
+msgid "File"
+msgstr ""
 
 msgid "Filename of the boot image advertised to clients"
 msgstr ""
@@ -796,6 +869,9 @@ msgstr "Firewall Settings"
 msgid "Firewall Status"
 msgstr "Firewall Status"
 
+msgid "Firmware Version"
+msgstr ""
+
 msgid "Firmware image"
 msgstr "Firmware image"
 
@@ -814,6 +890,12 @@ msgstr "Force"
 msgid "Force DHCP on this network even if another server is detected."
 msgstr ""
 
+msgid "Forward DHCP"
+msgstr ""
+
+msgid "Forward broadcasts"
+msgstr ""
+
 msgid "Forwarding mode"
 msgstr ""
 
@@ -823,11 +905,20 @@ msgstr "Fragmentation Threshold"
 msgid "Frame Bursting"
 msgstr "Frame Bursting"
 
+msgid "Free"
+msgstr ""
+
 msgid "Free space"
 msgstr ""
 
 msgid "Frequency Hopping"
 msgstr "Frequency Hopping"
+
+msgid "Gateway"
+msgstr ""
+
+msgid "Gateway ports"
+msgstr ""
 
 msgid "General"
 msgstr "General"
@@ -837,6 +928,9 @@ msgstr ""
 
 msgid "General Setup"
 msgstr "General Setup"
+
+msgid "Given password confirmation did not match, password not changed!"
+msgstr ""
 
 msgid "Go to relevant configuration page"
 msgstr "Go to relevant configuration page"
@@ -878,28 +972,27 @@ msgstr ""
 "\"Lua Configuration Interface\">LuCI</abbr>."
 
 msgid ""
-"Here you can find information about the current system status like <abbr "
-"title=\"Central Processing Unit\">CPU</abbr> clock frequency, memory usage "
-"or network interface data."
+"Here you can paste public <abbr title=\"Secure Shell\">SSH</abbr>-Keys (one "
+"per line) for <abbr title=\"Secure Shell\">SSH</abbr> public-key "
+"authentication."
 msgstr ""
-"Here you can find information about the current system status like <abbr "
-"title=\"Central Processing Unit\">CPU</abbr> clock frequency, memory usage "
-"or network interface data."
+"Here you can paste public <abbr title=\"Secure Shell\">SSH</abbr>-Keys (one "
+"per line) for <abbr title=\"Secure Shell\">SSH</abbr> public-key "
+"authentication."
 
 msgid ""
-"Here you can paste public <abbr title=\"Secure Shell\">SSH</abbr>-Keys (one "
-"per line) for <abbr title=\"Secure Shell\">SSH</abbr> public-key "
+"Here you can paste public SSH-Keys (one per line) for SSH public-key "
 "authentication."
 msgstr ""
-"Here you can paste public <abbr title=\"Secure Shell\">SSH</abbr>-Keys (one "
-"per line) for <abbr title=\"Secure Shell\">SSH</abbr> public-key "
-"authentication."
 
 msgid "Hide <abbr title=\"Extended Service Set Identifier\">ESSID</abbr>"
 msgstr "Hide <abbr title=\"Extended Service Set Identifier\">ESSID</abbr>"
 
 msgid "Host entries"
 msgstr "Host entries"
+
+msgid "Host expiry timeout"
+msgstr ""
 
 msgid "Host-<abbr title=\"Internet Protocol Address\">IP</abbr> or Network"
 msgstr "Host-<abbr title=\"Internet Protocol Address\">IP</abbr> or Network"
@@ -928,6 +1021,15 @@ msgstr ""
 msgid "IPv4 Firewall"
 msgstr ""
 
+msgid "IPv4 WAN Status"
+msgstr ""
+
+msgid "IPv4 and IPv6"
+msgstr ""
+
+msgid "IPv4 only"
+msgstr ""
+
 msgid "IPv4-Address"
 msgstr ""
 
@@ -938,6 +1040,12 @@ msgid "IPv6 Firewall"
 msgstr ""
 
 msgid "IPv6 Setup"
+msgstr ""
+
+msgid "IPv6 WAN Status"
+msgstr ""
+
+msgid "IPv6 only"
 msgstr ""
 
 msgid "Identity"
@@ -982,6 +1090,12 @@ msgstr ""
 
 msgid "Info"
 msgstr ""
+
+msgid "Initscript"
+msgstr "Initscript"
+
+msgid "Initscripts"
+msgstr "Initscripts"
 
 msgid "Install"
 msgstr "Install"
@@ -1065,6 +1179,9 @@ msgstr ""
 msgid "Kernel Log"
 msgstr "Kernel Log"
 
+msgid "Kernel Version"
+msgstr ""
+
 msgid "Key"
 msgstr "Key"
 
@@ -1088,6 +1205,9 @@ msgstr ""
 
 msgid "Lead Development"
 msgstr "Lead Development"
+
+msgid "Lease validity time"
+msgstr ""
 
 msgid "Leasefile"
 msgstr "Leasefile"
@@ -1131,13 +1251,22 @@ msgstr ""
 msgid "List of domains to allow RFC1918 responses for"
 msgstr ""
 
+msgid "Listen only on the given interface or, if unspecified, on all"
+msgstr ""
+
 msgid "Listening port for inbound DNS queries"
 msgstr ""
 
 msgid "Load"
 msgstr "Load"
 
+msgid "Load Average"
+msgstr ""
+
 msgid "Loading"
+msgstr ""
+
+msgid "Local Startup"
 msgstr ""
 
 msgid "Local Time"
@@ -1310,6 +1439,9 @@ msgstr ""
 msgid "Multicast Rate"
 msgstr "Multicast Rate"
 
+msgid "Multicast address"
+msgstr ""
+
 msgid "NAS ID"
 msgstr "NAS ID"
 
@@ -1324,6 +1456,9 @@ msgstr "Name of the new network"
 
 msgid "Navigation"
 msgstr "Navigation"
+
+msgid "Netmask"
+msgstr ""
 
 msgid "Network"
 msgstr "Network"
@@ -1450,6 +1585,9 @@ msgstr ""
 msgid "Outdoor Channels"
 msgstr "Outdoor Channels"
 
+msgid "Override Gateway"
+msgstr ""
+
 msgid ""
 "Override the netmask sent to clients. Normally it is calculated from the "
 "subnet that is served."
@@ -1499,6 +1637,9 @@ msgstr "Password of Private Key"
 
 msgid "Password successfully changed"
 msgstr "Password successfully changed"
+
+msgid "Password successfully changed!"
+msgstr ""
 
 msgid "Path to CA-Certificate"
 msgstr "Path to CA-Certificate"
@@ -1586,6 +1727,9 @@ msgstr "Prot."
 msgid "Protocol"
 msgstr "Protocol"
 
+msgid "Protocol family"
+msgstr ""
+
 msgid "Provide new network"
 msgstr ""
 
@@ -1667,6 +1811,12 @@ msgstr "References"
 msgid "Regulatory Domain"
 msgstr "Regulatory Domain"
 
+msgid "Relay Settings"
+msgstr ""
+
+msgid "Relay between networks"
+msgstr ""
+
 msgid "Remove"
 msgstr "Remove"
 
@@ -1700,6 +1850,9 @@ msgstr ""
 msgid "Resolve file"
 msgstr ""
 
+msgid "Restart"
+msgstr "Restart"
+
 msgid "Restart Firewall"
 msgstr "Restart Firewall"
 
@@ -1718,6 +1871,15 @@ msgstr ""
 msgid "Root directory for files served via TFTP"
 msgstr ""
 
+msgid "Router Model"
+msgstr ""
+
+msgid "Router Name"
+msgstr ""
+
+msgid "Router Password"
+msgstr ""
+
 msgid "Routes"
 msgstr "Routes"
 
@@ -1728,6 +1890,9 @@ msgstr ""
 "Routes specify over which interface and gateway a certain host or network "
 "can be reached."
 
+msgid "Routing table ID"
+msgstr ""
+
 msgid "Rule #"
 msgstr "Rule #"
 
@@ -1735,6 +1900,12 @@ msgid "Run a filesystem check before mounting the device"
 msgstr ""
 
 msgid "Run filesystem check"
+msgstr ""
+
+msgid "SSH Access"
+msgstr ""
+
+msgid "SSH-Keys"
 msgstr ""
 
 msgid "SSID"
@@ -1758,9 +1929,6 @@ msgstr "Scan"
 msgid "Scheduled Tasks"
 msgstr "Scheduled Tasks"
 
-msgid "Search file..."
-msgstr "Search file..."
-
 msgid ""
 "Seconds to wait for the modem to become ready before attempting to connect"
 msgstr ""
@@ -1775,16 +1943,19 @@ msgstr ""
 msgid "See \"mount\" manpage for details"
 msgstr ""
 
+msgid "Send Router Solicitiations"
+msgstr ""
+
 msgid "Separate Clients"
 msgstr "Separate Clients"
 
 msgid "Separate WDS"
 msgstr "Separate WDS"
 
-msgid "Server"
+msgid "Server IPv4-Address"
 msgstr ""
 
-msgid "Server IPv4-Address"
+msgid "Server Settings"
 msgstr ""
 
 msgid "Service type"
@@ -1848,6 +2019,9 @@ msgstr "Specifies the button state to handle"
 msgid "Specifies the directory the device is attached to"
 msgstr ""
 
+msgid "Specifies the listening port of this <em>Dropbear</em> instance"
+msgstr ""
+
 msgid "Specify additional command line arguments for pppd here"
 msgstr "Specify additional command line arguments for pppd here"
 
@@ -1856,6 +2030,12 @@ msgstr ""
 
 msgid "Start"
 msgstr "Start"
+
+msgid "Start priority"
+msgstr "Start priority"
+
+msgid "Startup"
+msgstr ""
 
 msgid "Static IPv4 Routes"
 msgstr "Static IPv4 Routes"
@@ -1880,6 +2060,9 @@ msgstr ""
 
 msgid "Status"
 msgstr "Status"
+
+msgid "Stop"
+msgstr "Stop"
 
 msgid "Strict order"
 msgstr "Strict order"
@@ -1978,7 +2161,7 @@ msgid ""
 "\"Proceed\" below to start the flash procedure."
 msgstr ""
 
-msgid "The following changes have been comitted"
+msgid "The following changes have been committed"
 msgstr ""
 
 msgid "The following changes have been reverted"
@@ -2069,6 +2252,11 @@ msgid ""
 msgstr ""
 
 msgid ""
+"This is the content of /etc/rc.local. Insert your own commands here (in "
+"front of 'exit 0') to execute them at the end of the boot process."
+msgstr ""
+
+msgid ""
 "This is the only <abbr title=\"Dynamic Host Configuration Protocol\">DHCP</"
 "abbr> in the local network"
 msgstr ""
@@ -2102,6 +2290,9 @@ msgstr ""
 
 msgid "Timezone"
 msgstr "Timezone"
+
+msgid "Total Available"
+msgstr ""
 
 msgid "Traffic"
 msgstr "Traffic"
@@ -2142,11 +2333,17 @@ msgstr "Type"
 msgid "UDP:"
 msgstr ""
 
+msgid "USB Device"
+msgstr ""
+
 msgid "UUID"
 msgstr ""
 
 msgid "Unknown Error"
 msgstr "Unknown Error"
+
+msgid "Unknown Error, password not changed!"
+msgstr ""
 
 msgid "Unsaved Changes"
 msgstr "Unsaved Changes"
@@ -2255,6 +2452,9 @@ msgstr "Wifi"
 msgid "Wifi networks in your local environment"
 msgstr "Wifi networks in your local environment"
 
+msgid "Wireless"
+msgstr ""
+
 msgid "Wireless Adapter"
 msgstr "Wireless Adapter"
 
@@ -2275,6 +2475,15 @@ msgstr ""
 
 msgid "XR Support"
 msgstr "XR Support"
+
+msgid ""
+"You can enable or disable installed init scripts here. Changes will applied "
+"after a device reboot.<br /><strong>Warning: If you disable essential init "
+"scripts like \"network\", your device might become inaccesable!</strong>"
+msgstr ""
+"You can enable or disable installed init scripts here. Changes will applied "
+"after a device reboot.<br /><strong>Warning: If you disable essential init "
+"scripts like \"network\", your device might become inaccesable!</strong>"
 
 msgid ""
 "You can specify multiple DNS servers here, press enter to add a new entry. "
@@ -2376,6 +2585,25 @@ msgstr ""
 
 msgid "« Back"
 msgstr "« Back"
+
+#~ msgid ""
+#~ "Also kernel or service logfiles can be viewed here to get an overview "
+#~ "over their current state."
+#~ msgstr ""
+#~ "Also kernel or service logfiles can be viewed here to get an overview "
+#~ "over their current state."
+
+#~ msgid ""
+#~ "Here you can find information about the current system status like <abbr "
+#~ "title=\"Central Processing Unit\">CPU</abbr> clock frequency, memory "
+#~ "usage or network interface data."
+#~ msgstr ""
+#~ "Here you can find information about the current system status like <abbr "
+#~ "title=\"Central Processing Unit\">CPU</abbr> clock frequency, memory "
+#~ "usage or network interface data."
+
+#~ msgid "Search file..."
+#~ msgstr "Search file..."
 
 #~ msgid ""
 #~ "<abbr title=\"Lua Configuration Interface\">LuCI</abbr> is a free, "
