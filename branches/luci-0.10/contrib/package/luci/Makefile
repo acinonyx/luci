@@ -197,9 +197,7 @@ define Package/luci-mod-freifunk-community
   SUBMENU:=Freifunk
   TITLE:=Freifunk Community Meta-Package
   DEPENDS+= \
-   +luci-lib-web +luci-app-splash \
-   +luci-app-ffwizard \
-   +luci-i18n-german \
+   +luci-lib-web +luci-app-splash +luci-i18n-german \
    +PACKAGE_luci-mod-freifunk-community:olsrd +PACKAGE_luci-mod-freifunk-community:olsrd-mod-dyn-gw-plain \
    +PACKAGE_luci-mod-freifunk-community:olsrd-mod-txtinfo +PACKAGE_luci-mod-freifunk-community:olsrd-mod-nameservice \
    +PACKAGE_luci-mod-freifunk-community:olsrd-mod-watchdog +PACKAGE_luci-mod-freifunk-community:kmod-tun \
@@ -306,6 +304,12 @@ $(eval $(call application,siitwizard,SIIT IPv4-over-IPv6 configuration wizard,\
 $(eval $(call application,firewall,Firmware and Portforwarding application,\
 	+PACKAGE_luci-app-firewall:firewall))
 
+$(eval $(call application,freifunk-policyrouting,Policy routing for mesh traffic,\
+        +PACKAGE_luci-app-freifunk-policyrouting:freifunk-policyrouting +luci-mod-freifunk))
+
+$(eval $(call application,meshwizard, Shellscript based wizard to setup mesh networks,\
+        +meshwizard +luci-mod-freifunk))
+
 $(eval $(call application,olsr,OLSR configuration and status module,\
 	+luci-mod-admin-full +PACKAGE_luci-app-olsr:olsrd +PACKAGE_luci-app-olsr:olsrd-mod-txtinfo))
 
@@ -375,9 +379,6 @@ $(eval $(call application,hd-idle,Hard Disk Idle Spin-Down module,\
 $(eval $(call application,tinyproxy,Tinyproxy - HTTP(S)-Proxy configuration,\
 	+luci-mod-admin-full +PACKAGE_luci-app-tinyproxy:tinyproxy))
 
-$(eval $(call application,initmgr,LuCI Initscript Management,\
-	+luci-mod-admin-full))
-
 $(eval $(call application,polipo,LuCI Support for the Polipo Proxy,\
 	+PACKAGE_luci-app-polipo:polipo))
 
@@ -399,6 +400,9 @@ $(eval $(call application,vnstat,LuCI Support for VnStat,\
 
 $(eval $(call application,radvd,LuCI Support for Radvd,\
 	+luci-mod-admin-full +PACKAGE_luci-app-radvd:radvd))
+
+$(eval $(call application,ahcp,LuCI Support for AHCPd,\
+	+luci-mod-admin-full +PACKAGE_luci-app-ahcp:ahcpd))
 
 $(eval $(call application,lqtapifoss,Lantiq voip))
 
@@ -500,6 +504,7 @@ $(eval $(call translation,french,French (by Florian Fainelli)))
 $(eval $(call translation,italian,Italian (by Matteo Croce)))
 $(eval $(call translation,russian,Russian (by Skryabin Dmitry)))
 $(eval $(call translation,portuguese_brazilian,Portuguese (Brazilian) (by Carlos Cesario)))
+$(eval $(call translation,chinese,Chinese (by Chinese Translators)))
 $(eval $(call translation,japanese,Japanese (by Tsukasa Hamano)))
 $(eval $(call translation,greek,Greek (by Vasilis Tsiligiannis)))
 $(eval $(call translation,catalan,Catalan (by Eduard Duran)))
@@ -508,6 +513,7 @@ $(eval $(call translation,spanish,Spanish (by Guillermo Javier Nardoni)))
 $(eval $(call translation,vietnamese,Vietnamese (by Hong Phuc Dang)))
 $(eval $(call translation,malay,Malay (by Teow Wai Chet)))
 $(eval $(call translation,norwegian,Norwegian (by Lars Hardy)))
+$(eval $(call translation,hebrew,Hebrew))
 
 
 ### Collections ###
@@ -533,12 +539,12 @@ endef
 $(eval $(call collection,,\
 	Standard OpenWrt set including full and mini admin and the standard theme,\
 	+uhttpd +luci-mod-admin-full +luci-theme-openwrt +luci-app-firewall \
-	+luci-app-initmgr +libiwinfo))
+	+libiwinfo))
 
 $(eval $(call collection,ssl,\
 	Standard OpenWrt set with HTTPS support,\
 	+uhttpd +uhttpd-mod-tls +px5g +luci-mod-admin-full +luci-theme-openwrt \
-	+luci-app-firewall +luci-app-initmgr +libiwinfo))
+	+luci-app-firewall +libiwinfo))
 
 $(eval $(call collection,light,\
 	Minimum package set using only admin mini and the standard theme,\

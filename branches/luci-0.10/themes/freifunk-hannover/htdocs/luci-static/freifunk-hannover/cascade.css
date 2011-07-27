@@ -518,6 +518,12 @@ td input[type=password] {
 	width: 99%;
 }
 
+img.cbi-image-button {
+	cursor: pointer;
+	margin: 0 2px;
+	vertical-align: middle;
+}
+
 input.cbi-input-user {
 	background: url('../resources/cbi/user.gif') no-repeat scroll 1px center;
 	background-color: inherit;
@@ -603,6 +609,14 @@ div.cbi-section-remove input {
 	padding-left: 17px;
 	padding-right: 1px;
 		border: 1px solid #fff;
+}
+
+.cbi-input-invalid {
+	background-image: url('../resources/cbi/reset.gif');
+	background-repeat: no-repeat;
+	background-position: right;
+	color: #FF0000 !important;
+	border-color: #FF0000;
 }
 
 div.cbi-section-remove input {

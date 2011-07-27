@@ -1,46 +1,48 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-19 19:36+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-07-20 15:19+0200\n"
+"Last-Translator: Kamal <kamal.aliev@epscom.ru>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Translate Toolkit 1.1.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Pootle 2.0.4\n"
 
 #. CoovaChilli
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:1
 msgid "CoovaChilli"
-msgstr ""
+msgstr "CoovaChilli"
 
 #. General configuration
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:2
 msgid "General configuration"
-msgstr ""
+msgstr "Общие настройки"
 
 #. General CoovaChilli settings
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:3
 msgid "General CoovaChilli settings"
-msgstr ""
+msgstr "Общие настройки CoovaChilli"
 
 #. Command socket
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:4
 msgid "Command socket"
-msgstr ""
+msgstr "Сокет команд"
 
 #. UNIX socket used for communication with chilli_query
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:5
 msgid "UNIX socket used for communication with chilli_query"
-msgstr ""
+msgstr "UNIX сокет для связи с chilli_query"
 
 #. Config refresh interval
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:6
 msgid "Config refresh interval"
-msgstr ""
+msgstr "Интервал обновления конфигурации"
 
 #. Re-read configuration file and do DNS lookups every interval seconds. This has the same effect as sending the HUP signal. If interval is 0 (zero) this feature is disabled. 
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:7
@@ -53,7 +55,7 @@ msgstr ""
 #. Pid file
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:8
 msgid "Pid file"
-msgstr ""
+msgstr "Pid файл"
 
 #. Filename to put the process id
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:9
@@ -73,7 +75,7 @@ msgstr ""
 #. TUN/TAP configuration
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:12
 msgid "TUN/TAP configuration"
-msgstr ""
+msgstr "TUN/TAP конфигурация"
 
 #. Network/Tun configuration
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:13
@@ -83,7 +85,7 @@ msgstr ""
 #. Network down script
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:14
 msgid "Network down script"
-msgstr ""
+msgstr "Скрипт выключения сети"
 
 #. Script executed after a session has moved from authorized state to unauthorized
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:15
@@ -95,7 +97,7 @@ msgstr ""
 #. Network up script
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:16
 msgid "Network up script"
-msgstr ""
+msgstr "Скрипт включения сети"
 
 #. Script executed after the tun network interface has been brought up
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:17
@@ -105,17 +107,17 @@ msgstr ""
 #. Primary DNS Server
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:18
 msgid "Primary DNS Server"
-msgstr ""
+msgstr "Первичный DNS сервер"
 
 #. Secondary DNS Server
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:20
 msgid "Secondary DNS Server"
-msgstr ""
+msgstr "Вторичный DNS сервер"
 
 #. Domain name
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:22
 msgid "Domain name"
-msgstr ""
+msgstr "Доменное имя"
 
 #. Is used to inform the client about the domain name to use for DNS lookups
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:23
@@ -126,12 +128,12 @@ msgstr ""
 #. Dynamic IP address pool
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:24
 msgid "Dynamic IP address pool"
-msgstr ""
+msgstr "Диапазон динамических IP адресов"
 
 #. Specifies a pool of dynamic IP addresses
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:25
 msgid "Specifies a pool of dynamic IP addresses"
-msgstr ""
+msgstr "Определяет диапазон динамических IP адресов"
 
 #. IP down script
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:26
@@ -166,47 +168,47 @@ msgstr ""
 #. Static IP address pool
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:32
 msgid "Static IP address pool"
-msgstr ""
+msgstr "Диапазон статических IP адресов"
 
 #. Specifies a pool of static IP addresses
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:33
 msgid "Specifies a pool of static IP addresses"
-msgstr ""
+msgstr "Определяет диапазон статических IP адресов"
 
 #. TUN/TAP device
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:34
 msgid "TUN/TAP device"
-msgstr ""
+msgstr "TUN/TAP устройство"
 
 #. The specific device to use for the TUN/TAP interface
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:35
 msgid "The specific device to use for the TUN/TAP interface"
-msgstr ""
+msgstr "Устройство для TUN/TAP интерфейса"
 
 #. TX queue length
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:36
 msgid "TX queue length"
-msgstr ""
+msgstr "Длина очереди TX"
 
 #. The TX queue length to set on the TUN/TAP interface
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:37
 msgid "The TX queue length to set on the TUN/TAP interface"
-msgstr ""
+msgstr "Длина TX очереди TUN/TAP интерфейса"
 
 #. Use TAP device
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:38
 msgid "Use TAP device"
-msgstr ""
+msgstr "Использовать устройство TAP"
 
 #. Use the TAP interface instead of TUN
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:39
 msgid "Use the TAP interface instead of TUN"
-msgstr ""
+msgstr "Использовать интерфейс TAP вместо TUN"
 
 #. DHCP configuration
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:40
 msgid "DHCP configuration"
-msgstr ""
+msgstr "Настройки DHCP"
 
 #. Set DHCP options for connecting clients
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:41
@@ -226,7 +228,7 @@ msgstr ""
 #. DHCP interface
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:44
 msgid "DHCP interface"
-msgstr ""
+msgstr "DHCP интерфейс"
 
 #. Ethernet interface to listen to for the downlink interface
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:45
@@ -258,17 +260,17 @@ msgstr ""
 #. Enable IEEE 802.1x
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:50
 msgid "Enable IEEE 802.1x"
-msgstr ""
+msgstr "Включить IEEE 802.1x"
 
 #. Enable IEEE 802.1x authentication and listen for EAP requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:51
 msgid "Enable IEEE 802.1x authentication and listen for EAP requests"
-msgstr ""
+msgstr "Включить IEEE 802.1x аутентификацию и обработку запросов EAP"
 
 #. Leasetime
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:52
 msgid "Leasetime"
-msgstr ""
+msgstr "Время аренды"
 
 #. Use a DHCP lease of seconds (default 600)
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:53
@@ -278,7 +280,7 @@ msgstr ""
 #. Allow session update through RADIUS
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:56
 msgid "Allow session update through RADIUS"
-msgstr ""
+msgstr "Разрешить обновление сессии через RADIUS"
 
 #. Allow updating of session parameters with RADIUS attributes sent in Accounting-Response
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:57
@@ -286,11 +288,13 @@ msgid ""
 "Allow updating of session parameters with RADIUS attributes sent in "
 "Accounting-Response"
 msgstr ""
+"Разрешить обновление параметров сессии используя RADIUS атрибуты посланные "
+"через Accounting-Response"
 
 #. Admin password
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:58
 msgid "Admin password"
-msgstr ""
+msgstr "Пароль администратора"
 
 #. Password to use for Administrative-User authentication in order to pick up chilli configurations and establish a device \"system\" session
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:59
@@ -302,7 +306,7 @@ msgstr ""
 #. Admin user
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:60
 msgid "Admin user"
-msgstr ""
+msgstr "Администратор"
 
 #. User-name to use for Administrative-User authentication in order to pick up chilli configurations and establish a device \"system\" session
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:61
@@ -314,7 +318,7 @@ msgstr ""
 #. Do not check disconnection requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:62
 msgid "Do not check disconnection requests"
-msgstr ""
+msgstr "Не проверять запросы на разъединение"
 
 #. Do not check the source IP address of radius disconnect requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:63
@@ -334,7 +338,7 @@ msgstr ""
 #. NAS IP
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:66
 msgid "NAS IP"
-msgstr ""
+msgstr "IP адрес NAS"
 
 #. Value to use in RADIUS NAS-IP-Address attribute
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:67
@@ -344,7 +348,7 @@ msgstr ""
 #. NAS MAC
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:68
 msgid "NAS MAC"
-msgstr ""
+msgstr "MAC адрес NAS"
 
 #. MAC address value to use in RADIUS Called-Station-ID attribute
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:69
@@ -354,7 +358,7 @@ msgstr ""
 #. Allow OpenID authentication
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:70
 msgid "Allow OpenID authentication"
-msgstr ""
+msgstr "Разрешить OpenID аутентификацию"
 
 #. Allows OpenID authentication by sending ChilliSpot-Config=allow-openidauth in RADIUS Access-Requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:71
@@ -383,7 +387,7 @@ msgstr ""
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:75
 msgid ""
 "The UDP port number to use for radius authentication requests (default 1812)"
-msgstr ""
+msgstr "UDP порт для запросов аутентификации radius (1812 по умолчанию)"
 
 #. Option radiuscalled
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:76
@@ -423,7 +427,7 @@ msgstr ""
 #. NAS ID
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:83
 msgid "NAS ID"
-msgstr ""
+msgstr "Идентификатор NAS"
 
 #. Network access server identifier
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:84
@@ -438,7 +442,7 @@ msgstr ""
 #. NAS port type
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:86
 msgid "NAS port type"
-msgstr ""
+msgstr "Тип порта NAS"
 
 #. Value of NAS-Port-Type attribute. Defaults to 19 (Wireless-IEEE-802.11)
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:87
@@ -468,27 +472,27 @@ msgstr ""
 #. RADIUS server 1
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:92
 msgid "RADIUS server 1"
-msgstr ""
+msgstr "RADIUS сервер 1"
 
 #. The IP address of radius server 1
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:93
 msgid "The IP address of radius server 1"
-msgstr ""
+msgstr "IP адрес RADIUS сервера 1"
 
 #. RADIUS server 2
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:94
 msgid "RADIUS server 2"
-msgstr ""
+msgstr "RADIUS сервер 2"
 
 #. The IP address of radius server 2
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:95
 msgid "The IP address of radius server 2"
-msgstr ""
+msgstr "IP адрес RADIUS сервера 2"
 
 #. Swap octets
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:96
 msgid "Swap octets"
-msgstr ""
+msgstr "Переставлять октеты"
 
 #. Swap the meaning of \"input octets\" and \"output octets\" as it related to RADIUS attribtues
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:97
@@ -500,7 +504,7 @@ msgstr ""
 #. Allow WPA guests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:98
 msgid "Allow WPA guests"
-msgstr ""
+msgstr "Разрешить гостевой WPA вход"
 
 #. Allows WPA Guest authentication by sending ChilliSpot-Config=allow-wpa-guests in RADIUS Access-Requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:99
@@ -512,7 +516,7 @@ msgstr ""
 #. Proxy client
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:102
 msgid "Proxy client"
-msgstr ""
+msgstr "Клиент прокси"
 
 #. IP address from which radius requests are accepted. If omitted the server will not accept radius requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:103
@@ -534,7 +538,7 @@ msgstr ""
 #. Proxy port
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:106
 msgid "Proxy port"
-msgstr ""
+msgstr "Порт прокси"
 
 #. UDP Port to listen to for accepting radius requests
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:107
@@ -544,7 +548,7 @@ msgstr ""
 #. Proxy secret
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:108
 msgid "Proxy secret"
-msgstr ""
+msgstr "Секрет прокси"
 
 #. Radius shared secret for clients
 #: applications/luci-coovachilli/luasrc/i18n/coovachilli.en.lua:109

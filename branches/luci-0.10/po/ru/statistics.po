@@ -1,16 +1,18 @@
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-19 19:36+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-07-20 09:21+0200\n"
+"Last-Translator: Kamal <kamal.aliev@epscom.ru>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Translate Toolkit 1.1.1\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%"
+"10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Pootle 2.0.4\n"
 
 #. The statistics package is based on <a href=\"http://collectd.org/index.shtml\">Collectd</a> and uses <a href=\"http://oss.oetiker.ch/rrdtool/\">RRD Tool</a> to render diagram images from collected data.
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:2
@@ -53,12 +55,12 @@ msgstr ""
 #. Processor
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:9
 msgid "Processor"
-msgstr ""
+msgstr "Процессор"
 
 #. Ping
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:10
 msgid "Ping"
-msgstr ""
+msgstr "Пинг"
 
 #. Firewall
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:11
@@ -73,7 +75,7 @@ msgstr ""
 #. Processes
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:13
 msgid "Processes"
-msgstr ""
+msgstr "Процессы"
 
 #. Wireless
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:14
@@ -83,27 +85,27 @@ msgstr ""
 #. TCP Connections
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:15
 msgid "TCP Connections"
-msgstr ""
+msgstr "TCP соединения"
 
 #. Interfaces
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:16
 msgid "Interfaces"
-msgstr ""
+msgstr "Интерфейсы"
 
 #. Disk Space Usage
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:17
 msgid "Disk Space Usage"
-msgstr ""
+msgstr "Использование диска"
 
 #. Interrupts
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:18
 msgid "Interrupts"
-msgstr ""
+msgstr "Прерывания"
 
 #. Disk Usage
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:19
 msgid "Disk Usage"
-msgstr ""
+msgstr "Использование диска"
 
 #. Exec
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:20
@@ -118,7 +120,7 @@ msgstr ""
 #. Network
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:22
 msgid "Network"
-msgstr ""
+msgstr "Сеть"
 
 #. CSV Output
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:23
@@ -128,7 +130,7 @@ msgstr ""
 #. System Load
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:24
 msgid "System Load"
-msgstr ""
+msgstr "Загрузка системы"
 
 #. DNS
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:25
@@ -201,7 +203,7 @@ msgstr ""
 #. Number of threads for data collection
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:39
 msgid "Number of threads for data collection"
-msgstr ""
+msgstr "Количество потоков сбора данных"
 
 #. Try to lookup fully qualified hostname
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:40
@@ -400,12 +402,12 @@ msgstr ""
 #. max. 16 chars
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:106
 msgid "max. 16 chars"
-msgstr ""
+msgstr "Не более 16 символов"
 
 #. Table
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:107
 msgid "Table"
-msgstr ""
+msgstr "Таблица"
 
 #. Chain
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:108
@@ -420,7 +422,7 @@ msgstr ""
 #. Network protocol
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:110
 msgid "Network protocol"
-msgstr ""
+msgstr "Сетевой протокол"
 
 #. Source ip range
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:111
@@ -581,7 +583,7 @@ msgstr ""
 #. Server port
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:157
 msgid "Server port"
-msgstr ""
+msgstr "Порт сервера"
 
 #. TTL for network packets
 #: applications/luci-statistics/luasrc/i18n/statistics.en.lua:159

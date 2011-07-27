@@ -17,8 +17,8 @@ local fs = require "nixio.fs"
 local ip = require "luci.ip"
 local math = require "math"
 local util = require "luci.util"
+local tonumber, type = tonumber, type
 
-local tonumber = tonumber
 
 module "luci.cbi.datatypes"
 
@@ -66,12 +66,26 @@ function ipaddr(val)
 	return ip4addr(val) or ip6addr(val)
 end
 
+function neg_ipaddr(v)
+	if type(v) == "string" then
+		v = v:gsub("^%s*!", "")
+	end
+	return v and ipaddr(v)
+end
+
 function ip4addr(val)
 	if val then
 		return ip.IPv4(val) and true or false
 	end
 
 	return false
+end
+
+function neg_ip4addr(v)
+	if type(v) == "string" then
+		v = v:gsub("^%s*!", "")
+	end
+		return v and ip4addr(v)
 end
 
 function ip4prefix(val)
@@ -94,7 +108,7 @@ end
 
 function port(val)
 	val = tonumber(val)
-	return ( val and val >= 1 and val <= 65535 )
+	return ( val and val >= 0 and val <= 65535 )
 end
 
 function portrange(val)
@@ -213,6 +227,13 @@ function uciname(val)
 	return (val:match("^[a-zA-Z0-9_]+$") ~= nil)
 end
 
+function neg_network_ip4addr(val)
+	if type(v) == "string" then
+		v = v:gsub("^%s*!", "")
+		return (uciname(v) or ip4addr(v))
+	end	
+end
+
 function range(val, min, max)
 	val = tonumber(val)
 	min = tonumber(min)
@@ -220,6 +241,28 @@ function range(val, min, max)
 
 	if val ~= nil and min ~= nil and max ~= nil then
 		return ((val >= min) and (val <= max))
+	end
+
+	return false
+end
+
+function min(val, min)
+	val = tonumber(val)
+	min = tonumber(min)
+
+	if val ~= nil and min ~= nil then
+		return (val >= min)
+	end
+
+	return false
+end
+
+function max(val, max)
+	val = tonumber(val)
+	max = tonumber(max)
+
+	if val ~= nil and max ~= nil then
+		return (val <= max)
 	end
 
 	return false
