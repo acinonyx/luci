@@ -130,6 +130,8 @@ function httpdispatch(request, prefix)
 
 	local r = {}
 	context.request = r
+	context.urltoken = {}
+	
 	local pathinfo = http.urldecode(request:getenv("PATH_INFO") or "", true)
 
 	if prefix then
@@ -138,8 +140,18 @@ function httpdispatch(request, prefix)
 		end
 	end
 
+	local tokensok = true
 	for node in pathinfo:gmatch("[^/]+") do
-		r[#r+1] = node
+		local tkey, tval
+		if tokensok then
+			tkey, tval = node:match(";(%w+)=([a-fA-F0-9]*)")
+		end
+		if tkey then
+			context.urltoken[tkey] = tval
+		else
+			tokensok = false
+			r[#r+1] = node
+		end
 	end
 
 	local stat, err = util.coxpcall(function()
@@ -157,7 +169,6 @@ function dispatch(request)
 	--context._disable_memtrace = require "luci.debug".trap_memtrace("l")
 	local ctx = context
 	ctx.path = request
-	ctx.urltoken   = ctx.urltoken or {}
 
 	local conf = require "luci.config"
 	assert(conf.main,
@@ -187,34 +198,23 @@ function dispatch(request)
 	ctx.args = args
 	ctx.requestargs = ctx.requestargs or args
 	local n
-	local t = true
 	local token = ctx.urltoken
 	local preq = {}
 	local freq = {}
 
 	for i, s in ipairs(request) do
-		local tkey, tval
-		if t then
-			tkey, tval = s:match(";(%w+)=([a-fA-F0-9]*)")
+		preq[#preq+1] = s
+		freq[#freq+1] = s
+		c = c.nodes[s]
+		n = i
+		if not c then
+			break
 		end
 
-		if tkey then
-			token[tkey] = tval
-		else
-			t = false
-			preq[#preq+1] = s
-			freq[#freq+1] = s
-			c = c.nodes[s]
-			n = i
-			if not c then
-				break
-			end
+		util.update(track, c)
 
-			util.update(track, c)
-
-			if c.leaf then
-				break
-			end
+		if c.leaf then
+			break
 		end
 	end
 
@@ -229,7 +229,7 @@ function dispatch(request)
 	ctx.path = preq
 
 	if track.i18n then
-		require("luci.i18n").loadc(track.i18n)
+		i18n.loadc(track.i18n)
 	end
 
 	-- Init template engine
@@ -250,7 +250,7 @@ function dispatch(request)
 		tpl.context.viewns = setmetatable({
 		   write       = luci.http.write;
 		   include     = function(name) tpl.Template(name):render(getfenv(2)) end;
-		   translate   = function(...) return require("luci.i18n").translate(...) end;
+		   translate   = i18n.translate;
 		   export      = function(k, v) if tpl.context.viewns[k] == nil then tpl.context.viewns[k] = v end end;
 		   striptags   = util.striptags;
 		   pcdata      = util.pcdata;
@@ -513,7 +513,7 @@ function createtree()
 	end
 
 	local ctx  = context
-	local tree = {nodes={}}
+	local tree = {nodes={}, inreq=true}
 	local modi = {}
 
 	ctx.treecache = setmetatable({}, {__mode="v"})
@@ -612,28 +612,28 @@ function node(...)
 	return c
 end
 
-function _create_node(path, cache)
+function _create_node(path)
 	if #path == 0 then
 		return context.tree
 	end
 
-	cache = cache or context.treecache
 	local name = table.concat(path, ".")
-	local c = cache[name]
+	local c = context.treecache[name]
 
 	if not c then
-		local new = {nodes={}, auto=true, path=util.clone(path)}
 		local last = table.remove(path)
+		local parent = _create_node(path)
 
-		c = _create_node(path, cache)
-
-		c.nodes[last] = new
-		cache[name] = new
-
-		return new
-	else
-		return c
+		c = {nodes={}, auto=true}
+		-- the node is "in request" if the request path matches
+		-- at least up to the length of the node path
+		if parent.inreq and context.path[#path+1] == last then
+		  c.inreq = true
+		end
+		parent.nodes[last] = c
+		context.treecache[name] = c
 	end
+	return c
 end
 
 -- Subdispatchers --
@@ -852,4 +852,17 @@ end
 -- @param	model	CBI form model tpo be rendered
 function form(model)
 	return {type = "cbi", model = model, target = _form}
+end
+
+--- Access the luci.i18n translate() api.
+-- @class  function
+-- @name   translate
+-- @param  text    Text to translate
+translate = i18n.translate
+
+--- No-op function used to mark translation entries for menu labels.
+-- This function does not actually translate the given argument but
+-- is used by build/i18n-scan.pl to find translatable entries.
+function _(text)
+	return text
 end

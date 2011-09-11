@@ -3,13 +3,15 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-05-26 17:57+0200\n"
-"PO-Revision-Date: 2009-05-20 23:51+0200\n"
-"Last-Translator: Stefan Pirwitz <i18n@freifunk-bno.de>\n"
+"PO-Revision-Date: 2011-09-08 15:25+0200\n"
+"Last-Translator: Manuel <freifunk@somakoma.de>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Pootle 1.1.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Pootle 2.0.4\n"
 
 #. Asterisk General Options
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:1
@@ -19,19 +21,17 @@ msgstr "Grundeinstellungen für Asterisk"
 #. AGI directory
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:2
 msgid "AGI directory"
-msgstr "AGI - Verzeichniss"
+msgstr "AGI - Verzeichnis"
 
 #. Cache recorded sound files during recording
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:3
-#, fuzzy
 msgid "Cache recorded sound files during recording"
-msgstr "Puffere aufgenommene Audiodateien während der Aufname."
+msgstr "Audiodateien während der Aufnahme zwischenspeichern"
 
 #. Debug Level
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:4
-#, fuzzy
 msgid "Debug Level"
-msgstr "Fehlerausgabestufe"
+msgstr "Debug Stufe"
 
 #. Disable some warnings
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:5
@@ -40,9 +40,8 @@ msgstr "Schalte einige Warnungen aus"
 
 #. Dump core on crash
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:6
-#, fuzzy
 msgid "Dump core on crash"
-msgstr "Schalte einige Warnungen aus"
+msgstr "Speicherabbild bei Absturz erstellen"
 
 #. High Priority
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:7
@@ -52,59 +51,52 @@ msgstr "Hohe Priorität"
 #. Initialise Crypto
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:8
 msgid "Initialise Crypto"
-msgstr ""
+msgstr "Verschlüsselung initialisieren"
 
 #. Use Internal Timing
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:9
 msgid "Use Internal Timing"
-msgstr ""
+msgstr "Interne Zeitreferenz benutzen"
 
 #. Log directory
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:10
-#, fuzzy
 msgid "Log directory"
-msgstr "AGI - Verzeichniss"
+msgstr "Log - Verzeichnis"
 
 #. Maximum number of calls allowed
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:11
-#, fuzzy
 msgid "Maximum number of calls allowed"
-msgstr "AGI - Verzeichniss"
+msgstr "Maximale Anruferanzahl"
 
 #. Maximum load to stop accepting new calls
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:12
-#, fuzzy
 msgid "Maximum load to stop accepting new calls"
-msgstr "AGI - Verzeichniss"
+msgstr "Maximale CPU Auslastung um eingehende Anrufe anzunehmen"
 
 #. Disable console colors
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:13
-#, fuzzy
 msgid "Disable console colors"
-msgstr "Schalte einige Warnungen aus"
+msgstr "Farbige Ausgabe auf der Konsole deaktivieren"
 
 #. Sound files Cache directory
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:14
 msgid "Sound files Cache directory"
-msgstr ""
+msgstr "Verzeichnis zum Zwischenspeichern von Audiodateien"
 
 #. The Group to run as
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:15
-#, fuzzy
 msgid "The Group to run as"
-msgstr "Schalte einige Warnungen aus"
+msgstr "zu benutzende Gruppenkennung"
 
 #. The User to run as
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:16
-#, fuzzy
 msgid "The User to run as"
-msgstr "Schalte einige Warnungen aus"
+msgstr "zu benutzende Benutzerkennung"
 
 #. Voicemail Spool directory
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:17
-#, fuzzy
 msgid "Voicemail Spool directory"
-msgstr "AGI - Verzeichniss"
+msgstr "Sprachnachrichten Puffer"
 
 #. Prefix UniquID with system name
 #: applications/luci-asterisk/luasrc/i18n/asterisk.en.lua:18

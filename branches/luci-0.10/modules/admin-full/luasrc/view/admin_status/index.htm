@@ -140,7 +140,7 @@ $Id$
 						'<strong><%:Gateway%>: </strong>%s<br />',
 							ifc.proto,
 							(ifc.ipaddr) ? ifc.ipaddr : '0.0.0.0',
-							(ifc.netmask != ifc.ipaddr) ? ifc.netmask : '255.255.255.255',
+							(ifc.netmask && ifc.netmask != ifc.ipaddr) ? ifc.netmask : '255.255.255.255',
 							(ifc.gwaddr) ? ifc.gwaddr : '0.0.0.0'
 					);
 
@@ -513,7 +513,7 @@ $Id$
 			</tr></table>
 		</td></tr>
 		<% end %>
-		<tr><td width="33%"><%:Active IP Connections%></td><td id="conns">-</td></tr>
+		<tr><td width="33%"><%:Active Connections%></td><td id="conns">-</td></tr>
 	</table>
 </fieldset>
 
