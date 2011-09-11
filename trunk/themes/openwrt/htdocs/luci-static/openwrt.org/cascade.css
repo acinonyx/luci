@@ -5,6 +5,7 @@
 html {
 	min-height: 100%;
 	height: auto;
+	position:relative;
 }
 
 body {
@@ -255,6 +256,7 @@ textarea#syslog {
 	clear: both;
 	width: 96%;
 	margin: 0 auto;
+	height:100%;
 }
 
 #maincontent {
@@ -367,9 +369,7 @@ input[type=image] {
 input:focus,
 input:hover,
 select:focus,
-select:hover,
-textarea:focus,
-textarea:hover {
+select:hover {
 	background-color: #ffffff;
 	color: #000000;
 }
@@ -744,10 +744,11 @@ div.cbi-tab-descr {
 }
 
 .luci {
-	position: fixed;
+	position: absolute;
 	bottom: 0;
-	left: 0;
-	text-align: right;
+	left: 1em;
+	height: 1.5em;
+	font-size: 80%;
 }
 
 .luci a:link,

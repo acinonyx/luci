@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-06-10 03:40+0200\n"
-"PO-Revision-Date: 2011-07-13 08:54+0200\n"
+"PO-Revision-Date: 2011-09-05 05:44+0200\n"
 "Last-Translator: Kentaro <kentaro.matsuyama@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: ja\n"
@@ -393,6 +393,9 @@ msgstr "ブリッジインターフェース"
 msgid "Bridge unit number"
 msgstr "ブリッジユニット番号"
 
+msgid "Bring up on boot"
+msgstr "デフォルトで起動する"
+
 msgid "Buffered"
 msgstr "バッファ"
 
@@ -492,6 +495,9 @@ msgstr "設定を適用しました。"
 
 msgid "Configuration file"
 msgstr "設定ファイル"
+
+msgid "Configuration files will be kept."
+msgstr "設定ファイルは保持されます。"
 
 msgid ""
 "Configure the local DNS server to use the name servers adverticed by the PPP "
@@ -1526,6 +1532,9 @@ msgstr "アソシエーションされていません"
 
 msgid "Not configured"
 msgstr "未設定"
+
+msgid "Note: Configuration files will be erased."
+msgstr "注意: 設定ファイルは消去されます。"
 
 msgid ""
 "Note: If you choose an interface here which is part of another network, it "
