@@ -58,7 +58,21 @@ if not net then
 	return
 end
 
-local ifc = net:get_interfaces()[1]
+-- dhcp setup was requested, create section and reload page
+if m:formvalue("cbid.dhcp._enable._enable") then
+	m.uci:section("dhcp", "dhcp", nil, {
+		interface = arg[1],
+		start     = "100",
+		limit     = "150",
+		leasetime = "12h"
+	})
+
+	m.uci:save("dhcp")
+	luci.http.redirect(luci.dispatcher.build_url("admin/network/network", arg[1]))
+	return
+end
+
+local ifc = net:get_interface()
 
 s = m:section(NamedSection, arg[1], "interface", translate("Common Configuration"))
 s.addremove = false
@@ -103,7 +117,7 @@ if not ( has_pppd and has_pppoe and has_pppoa and has_3g and has_pptp ) then
 	p.description = translate("You need to install \"comgt\" for UMTS/GPRS, \"ppp-mod-pppoe\" for PPPoE, \"ppp-mod-pppoa\" for PPPoA or \"pptp\" for PPtP support")
 end
 
-auto = s:taboption("physical", Flag, "auto", translate("Bring up on boot"))                                                                                            
+auto = s:taboption("physical", Flag, "auto", translate("Bring up on boot"))
 auto.default = (m.uci:get("network", arg[1], "proto") == "none") and auto.disabled or auto.enabled
 
 br = s:taboption("physical", Flag, "type", translate("Bridge interfaces"), translate("creates a bridge over specified interface(s)"))
@@ -122,8 +136,8 @@ ifname_single = s:taboption("physical", Value, "ifname_single", translate("Inter
 ifname_single.template = "cbi/network_ifacelist"
 ifname_single.widget = "radio"
 ifname_single.nobridges = true
+ifname_single.rmempty = false
 ifname_single.network = arg[1]
-ifname_single.rmempty = true
 ifname_single:depends({ type = "", proto = "static" })
 ifname_single:depends({ type = "", proto = "dhcp"   })
 ifname_single:depends({ type = "", proto = "pppoe"  })
@@ -132,31 +146,52 @@ ifname_single:depends({ type = "", proto = "ahcp"   })
 ifname_single:depends({ type = "", proto = "none"   })
 
 function ifname_single.cfgvalue(self, s)
-	return self.map.uci:get("network", s, "ifname")
+	-- let the template figure out the related ifaces through the network model
+	return nil
 end
 
 function ifname_single.write(self, s, val)
 	local n = nw:get_network(s)
 	if n then
 		local i
-		for _, i in ipairs(n:get_interfaces()) do
-			n:del_interface(i)
+		local new_ifs = { }
+		local old_ifs = { }
+
+		for _, i in ipairs(n:get_interfaces() or { n:get_interface() }) do
+			old_ifs[#old_ifs+1] = i:name()
 		end
 
 		for i in ut.imatch(val) do
-			n:add_interface(i)
+			new_ifs[#new_ifs+1] = i
 
 			-- if this is not a bridge, only assign first interface
 			if self.option == "ifname_single" then
 				break
 			end
 		end
+
+		table.sort(old_ifs)
+		table.sort(new_ifs)
+
+		for i = 1, math.max(#old_ifs, #new_ifs) do
+			if old_ifs[i] ~= new_ifs[i] then
+				for i = 1, #old_ifs do
+					n:del_interface(old_ifs[i])
+				end
+				for i = 1, #new_ifs do
+					n:add_interface(new_ifs[i])
+				end
+				break
+			end
+		end
 	end
 end
+
 
 ifname_multi = s:taboption("physical", Value, "ifname_multi", translate("Interface"))
 ifname_multi.template = "cbi/network_ifacelist"
 ifname_multi.nobridges = true
+ifname_multi.rmempty = false
 ifname_multi.network = arg[1]
 ifname_multi.widget = "checkbox"
 ifname_multi:depends("type", "bridge")
@@ -215,6 +250,7 @@ gw = s:taboption("general", Value, "gateway", translate("<abbr title=\"Internet 
 gw.optional = true
 gw.datatype = "ip4addr"
 gw:depends("proto", "static")
+gw:depends("proto", "dhcp")
 
 bcast = s:taboption("general", Value, "broadcast", translate("<abbr title=\"Internet Protocol Version 4\">IPv4</abbr>-Broadcast"))
 bcast.optional = true
@@ -662,101 +698,92 @@ end
 
 if has_dnsmasq and net:proto() == "static" then
 	m2 = Map("dhcp", "", "")
-	
-	local section_id
-	function m2.on_parse()
-		m2.uci:foreach("dhcp", "dhcp", function(s)
-			if s.interface == arg[1] then
-				section_id = s['.name']
-				return false
+
+	local has_section = false
+
+	m2.uci:foreach("dhcp", "dhcp", function(s)
+		if s.interface == arg[1] then
+			has_section = true
+			return false
+		end
+	end)
+
+	if not has_section then
+
+		s = m2:section(TypedSection, "dhcp", translate("DHCP Server"))
+		s.anonymous   = true
+		s.cfgsections = function() return { "_enable" } end
+
+		x = s:option(Button, "_enable")
+		x.title      = translate("No DHCP Server configured for this interface")
+		x.inputtitle = translate("Setup DHCP Server")
+		x.inputstyle = "apply"
+
+	else
+
+		s = m2:section(TypedSection, "dhcp", translate("DHCP Server"))
+		s.addremove = false
+		s.anonymous = true
+		s:tab("general",  translate("General Setup"))
+		s:tab("advanced", translate("Advanced Settings"))
+
+		function s.filter(self, section)
+			return m2.uci:get("dhcp", section, "interface") == arg[1]
+		end
+
+		local ignore = s:taboption("general", Flag, "ignore",
+			translate("Ignore interface"),
+			translate("Disable <abbr title=\"Dynamic Host Configuration Protocol\">DHCP</abbr> for " ..
+				"this interface."))
+
+		local start = s:taboption("general", Value, "start", translate("Start"),
+			translate("Lowest leased address as offset from the network address."))
+		start.optional = true
+		start.datatype = "uinteger"
+		start.default = "100"
+
+		local limit = s:taboption("general", Value, "limit", translate("Limit"),
+			translate("Maximum number of leased addresses."))
+		limit.optional = true
+		limit.datatype = "uinteger"
+		limit.default = "150"
+
+		local ltime = s:taboption("general", Value, "leasetime", translate("Leasetime"),
+			translate("Expiry time of leased addresses, minimum is 2 Minutes (<code>2m</code>)."))
+		ltime.rmempty = true
+		ltime.default = "12h"
+
+		local dd = s:taboption("advanced", Flag, "dynamicdhcp",
+			translate("Dynamic <abbr title=\"Dynamic Host Configuration Protocol\">DHCP</abbr>"),
+			translate("Dynamically allocate DHCP addresses for clients. If disabled, only " ..
+				"clients having static leases will be served."))
+		dd.default = dd.enabled
+
+		s:taboption("advanced", Flag, "force", translate("Force"),
+			translate("Force DHCP on this network even if another server is detected."))
+
+		-- XXX: is this actually useful?
+		--s:taboption("advanced", Value, "name", translate("Name"),
+		--	translate("Define a name for this network."))
+
+		mask = s:taboption("advanced", Value, "netmask",
+			translate("<abbr title=\"Internet Protocol Version 4\">IPv4</abbr>-Netmask"),
+			translate("Override the netmask sent to clients. Normally it is calculated " ..
+				"from the subnet that is served."))
+
+		mask.optional = true
+		mask.datatype = "ip4addr"
+
+		s:taboption("advanced", DynamicList, "dhcp_option", translate("DHCP-Options"),
+			translate("Define additional DHCP options, for example \"<code>6,192.168.2.1," ..
+				"192.168.2.2</code>\" which advertises different DNS servers to clients."))
+
+		for i, n in ipairs(s.children) do
+			if n ~= ignore then
+				n:depends("ignore", "")
 			end
-		end)
-
-		if not section_id then
-			local c = 1
-			section_id = arg[1]
-			while m2.uci:get("dhcp", section_id) do
-				section_id = arg[1] .. c
-				c = c + 1
-			end
 		end
-	end
 
-	s = m2:section(TypedSection, "dhcp", translate("DHCP Server"))
-	s.addremove = false
-	s.anonymous = true
-	s:tab("general",  translate("General Setup"))
-	s:tab("advanced", translate("Advanced Settings"))
-
-	function s.cfgsections(self)
-		return { section_id }
-	end
-
-	local ignore = s:taboption("general", Flag, "ignore",
-		translate("Ignore interface"),
-		translate("Disable <abbr title=\"Dynamic Host Configuration Protocol\">DHCP</abbr> for " ..
-			"this interface."))
-
-	ignore.rmempty = false
-	ignore.default = ignore.enabled
-
-	function ignore.write(self, section, value)
-		if m2.uci:get("dhcp", section) ~= "dhcp" then
-			m2.uci:section("dhcp", "dhcp", section, {
-				interface = arg[1]
-			})
-		end
-		m2.uci:set("dhcp", section, "ignore", (value == "1") and "1" or "0")
-	end
-
-
-	local start = s:taboption("general", Value, "start", translate("Start"),
-		translate("Lowest leased address as offset from the network address."))
-	start.optional = true
-	start.datatype = "uinteger"
-	start.default = "100"
-
-	local limit = s:taboption("general", Value, "limit", translate("Limit"),
-		translate("Maximum number of leased addresses."))
-	limit.optional = true
-	limit.datatype = "uinteger"
-	limit.default = "150"
-
-	local ltime = s:taboption("general", Value, "leasetime", translate("Leasetime"),
-		translate("Expiry time of leased addresses, minimum is 2 Minutes (<code>2m</code>)."))
-	ltime.rmempty = true
-	ltime.default = "12h"
-
-	local dd = s:taboption("advanced", Flag, "dynamicdhcp",
-		translate("Dynamic <abbr title=\"Dynamic Host Configuration Protocol\">DHCP</abbr>"),
-		translate("Dynamically allocate DHCP addresses for clients. If disabled, only " ..
-			"clients having static leases will be served."))
-	dd.default = dd.enabled
-
-	s:taboption("advanced", Flag, "force", translate("Force"),
-		translate("Force DHCP on this network even if another server is detected."))
-
-	-- XXX: is this actually useful?
-	--s:taboption("advanced", Value, "name", translate("Name"),
-	--	translate("Define a name for this network."))
-
-	mask = s:taboption("advanced", Value, "netmask",
-		translate("<abbr title=\"Internet Protocol Version 4\">IPv4</abbr>-Netmask"),
-		translate("Override the netmask sent to clients. Normally it is calculated " ..
-			"from the subnet that is served."))
-
-	mask.optional = true
-	mask.datatype = "ip4addr"
-
-	s:taboption("advanced", DynamicList, "dhcp_option", translate("DHCP-Options"),
-		translate("Define additional DHCP options, for example \"<code>6,192.168.2.1," ..
-			"192.168.2.2</code>\" which advertises different DNS servers to clients."))
-
-
-	for i, n in ipairs(s.children) do
-		if n ~= ignore then
-			n:depends("ignore", "")
-		end
 	end
 end
 
