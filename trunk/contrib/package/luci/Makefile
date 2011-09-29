@@ -201,7 +201,8 @@ define Package/luci-mod-freifunk-community
    +PACKAGE_luci-mod-freifunk-community:olsrd +PACKAGE_luci-mod-freifunk-community:olsrd-mod-dyn-gw-plain \
    +PACKAGE_luci-mod-freifunk-community:olsrd-mod-txtinfo +PACKAGE_luci-mod-freifunk-community:olsrd-mod-nameservice \
    +PACKAGE_luci-mod-freifunk-community:olsrd-mod-watchdog +PACKAGE_luci-mod-freifunk-community:kmod-tun \
-   +PACKAGE_luci-mod-freifunk-community:ip +PACKAGE_luci-mod-freifunk-community:freifunk-watchdog +luci-app-olsr +luci-app-olsr-services
+   +PACKAGE_luci-mod-freifunk-community:ip +PACKAGE_luci-mod-freifunk-community:freifunk-watchdog +luci-app-olsr \
+   +luci-app-olsr-services +freifunk-gwcheck +freifunk-mapupdate
 endef
 
 define Package/luci-mod-freifunk-community/install
@@ -245,15 +246,11 @@ define Package/luci-mod-admin-core/extra-install
 	touch $(1)/etc/init.d/luci_fixtime || true
 endef
 
-define Package/luci-mod-freifunk/conffiles
-/etc/config/freifunk
-endef
-
 $(eval $(call module,admin-core,Web UI Core module,+luci-lib-web +luci-i18n-english))
 $(eval $(call module,admin-mini,LuCI Essentials - stripped down and user-friendly,+luci-mod-admin-core @BROKEN))
 $(eval $(call module,admin-full,LuCI Administration - full-featured for full control,+luci-mod-admin-core +luci-lib-ipkg))
 $(eval $(call module,rpc,LuCI RPC - JSON-RPC API,+luci-lib-json))
-$(eval $(call module,freifunk,LuCI Freifunk module,+luci-mod-admin-full +luci-lib-json +PACKAGE_luci-mod-freifunk:freifunk-firewall))
+$(eval $(call module,freifunk,LuCI Freifunk module,+luci-mod-admin-full +luci-lib-json +PACKAGE_luci-mod-freifunk:freifunk-firewall +freifunk-common +community-profiles))
 $(eval $(call module,niu,NIU - Next Generation Interface,+luci-mod-admin-core @BROKEN))
 
 
